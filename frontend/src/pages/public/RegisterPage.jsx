@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useTranslation } from "../../i18n/I18nContext";
 import { Gift, ExternalLink, ArrowRight, ShieldCheck } from "lucide-react";
+import { UIModal } from "../../components/common/UIModal";
 
 export function RegisterPage() {
   const { register } = useAuth();
@@ -25,6 +26,13 @@ export function RegisterPage() {
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "warning",
+    onCloseCallback: null,
+  });
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -39,15 +47,27 @@ export function RegisterPage() {
     setError("");
 
     if (formData.password !== formData.confirmPassword) {
-      const msg = "兩次輸入的密碼不相符";
+      const msg = "兩次輸入的密碼不相符，請重新確認";
       setError(msg);
-      alert(msg);
+      setModalConfig({
+        isOpen: true,
+        title: t("common.notice"),
+        message: msg,
+        type: "warning",
+        onCloseCallback: null,
+      });
       return;
     }
     if (!formData.agree_terms) {
       const msg = t("auth.agree_terms_required") || "請勾選並同意心童裝購物規則說明才能完成註冊";
       setError(msg);
-      alert(msg);
+      setModalConfig({
+        isOpen: true,
+        title: t("common.rules_check"),
+        message: msg,
+        type: "warning",
+        onCloseCallback: null,
+      });
       return;
     }
 
@@ -66,12 +86,23 @@ export function RegisterPage() {
         agreed_to_rules: formData.agree_terms,
       });
 
-      alert("🎉 註冊成功！系統已為您存入 60 點首購免運禮物卡！");
-      navigate("/products");
+      setModalConfig({
+        isOpen: true,
+        title: "🎉 註冊成功",
+        message: "恭喜您！系統已為您存入 60 點首購免運禮物卡！",
+        type: "success",
+        onCloseCallback: () => navigate("/products"),
+      });
     } catch (err) {
       const errorDetail = err.response?.data?.detail || "註冊失敗，請確認資料是否填寫完整";
       setError(errorDetail);
-      alert(errorDetail);
+      setModalConfig({
+        isOpen: true,
+        title: t("common.error_title"),
+        message: errorDetail,
+        type: "error",
+        onCloseCallback: null,
+      });
     } finally {
       setLoading(false);
     }
@@ -304,6 +335,20 @@ export function RegisterPage() {
           </Link>
         </div>
       </div>
+
+      {/* In-App UI Pop Up Modal */}
+      <UIModal
+        isOpen={modalConfig.isOpen}
+        onClose={() => {
+          setModalConfig((prev) => ({ ...prev, isOpen: false }));
+          if (modalConfig.onCloseCallback) {
+            modalConfig.onCloseCallback();
+          }
+        }}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        type={modalConfig.type}
+      />
     </div>
   );
 }

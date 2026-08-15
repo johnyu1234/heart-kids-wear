@@ -6,6 +6,7 @@ import { useTranslation } from "../../i18n/I18nContext";
 import { api } from "../../api/client";
 import { formatCurrency } from "../../utils/currency";
 import { Truck, AlertTriangle, ShieldCheck, CheckCircle2, ArrowRight } from "lucide-react";
+import { UIModal } from "../../components/common/UIModal";
 
 export function CheckoutPage() {
   const { user } = useAuth();
@@ -24,6 +25,12 @@ export function CheckoutPage() {
   const [pointsCards, setPointsCards] = useState([]);
   const [loading, setLoading] = useState(false);
   const [orderResult, setOrderResult] = useState(null);
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "warning",
+  });
 
   useEffect(() => {
     if (!user) {
@@ -67,7 +74,12 @@ export function CheckoutPage() {
   const handleSubmitOrder = async (e) => {
     e.preventDefault();
     if (!agreeTerms) {
-      alert("請勾選同意預購規則說明");
+      setModalConfig({
+        isOpen: true,
+        title: t("common.rules_check"),
+        message: t("checkout.agree_terms_required"),
+        type: "warning",
+      });
       return;
     }
 
@@ -90,7 +102,12 @@ export function CheckoutPage() {
       setOrderResult(res.data);
       await clearCart();
     } catch (err) {
-      alert(err.response?.data?.detail || "下單失敗，請稍後再試");
+      setModalConfig({
+        isOpen: true,
+        title: t("common.error_title"),
+        message: err.response?.data?.detail || "下單失敗，請稍後再試",
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -340,6 +357,15 @@ export function CheckoutPage() {
           </div>
         </div>
       </form>
+
+      {/* In-App UI Pop Up Modal */}
+      <UIModal
+        isOpen={modalConfig.isOpen}
+        onClose={() => setModalConfig((prev) => ({ ...prev, isOpen: false }))}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        type={modalConfig.type}
+      />
     </div>
   );
 }

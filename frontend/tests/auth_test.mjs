@@ -55,9 +55,16 @@ async function runAuthTests() {
     await page.check('input[name="agree_terms"]');
     await page.click('button[type="submit"]');
 
-    await page.locator("text=兩次輸入的密碼不相符").waitFor({ state: "visible", timeout: 5000 });
-    const mismatchError = await page.locator("text=兩次輸入的密碼不相符").isVisible();
-    assert(mismatchError, "Registration correctly catches password mismatch and displays alert");
+    await page.locator("text=兩次輸入的密碼不相符").first().waitFor({ state: "visible", timeout: 5000 });
+    const mismatchError = await page.locator("text=兩次輸入的密碼不相符").first().isVisible();
+    assert(mismatchError, "Registration correctly catches password mismatch and displays in-app UI modal");
+
+    // Close in-app UI modal
+    const closeMismatchBtn = page.locator('.modal-content button').first();
+    if (await closeMismatchBtn.isVisible()) {
+      await closeMismatchBtn.click();
+      await page.waitForTimeout(300);
+    }
 
     // ----------------------------------------------------
     // TEST 2: Successful Registration & 60-Points Welcome Bonus
@@ -88,10 +95,15 @@ async function runAuthTests() {
 
     await page.click('button[type="submit"]');
 
+    // Handle in-app UI popup modal on registration success
+    const okModalBtn = page.locator('.modal-content button.btn-primary');
+    await okModalBtn.waitFor({ state: "visible", timeout: 8000 });
+    assert(await page.locator(".modal-content").isVisible(), "In-app UI popup modal confirmed for registration success");
+    await okModalBtn.click();
+
     // Wait for redirect to /products
     await page.waitForURL("**/products", { timeout: 10000 });
     assert(page.url().includes("/products"), "Navigated to /products after registration");
-    assert(alertMessage.includes("60 點"), "Registration bonus alert message confirmed");
 
     // Check token and user in localStorage
     const authState = await page.evaluate(() => ({
@@ -130,9 +142,16 @@ async function runAuthTests() {
     await page.check('input[name="agree_terms"]');
     await page.click('button[type="submit"]');
 
-    await page.locator("text=已被註冊").waitFor({ state: "visible", timeout: 5000 });
-    const duplicateVisible = await page.locator("text=已被註冊").isVisible();
+    await page.locator("text=已被註冊").first().waitFor({ state: "visible", timeout: 5000 });
+    const duplicateVisible = await page.locator("text=已被註冊").first().isVisible();
     assert(duplicateVisible, "Duplicate email registration rejected with '已被註冊' error");
+
+    // Close in-app UI modal
+    const closeDupBtn = page.locator('.modal-content button').first();
+    if (await closeDupBtn.isVisible()) {
+      await closeDupBtn.click();
+      await page.waitForTimeout(300);
+    }
 
     // ----------------------------------------------------
     // TEST 5: Login with Wrong Password

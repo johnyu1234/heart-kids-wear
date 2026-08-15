@@ -133,6 +133,11 @@ export const translations = {
     "auth.agree_terms_required": "請勾選並同意心童裝購物規則說明才能完成註冊",
     "auth.btn_register_submit": "確認送出並領取 60 點",
     "auth.have_account": "已有帳號？直接登入",
+    "common.notice": "貼心提醒",
+    "common.rules_check": "預購規則確認",
+    "common.ok": "我知道了",
+    "common.error_title": "發生錯誤",
+    "checkout.agree_terms_required": "請勾選同意心童裝預購規則說明才能送出訂單",
 
     // Member Center
     "member.tab_orders": "預購進度查詢",
@@ -306,6 +311,11 @@ export const translations = {
     "auth.agree_terms_required": "Please agree to the Heart Kids Wear pre-order rules to complete registration.",
     "auth.btn_register_submit": "Complete Registration & Get 60 Pts",
     "auth.have_account": "Already have an account? Sign in",
+    "common.notice": "Notice",
+    "common.rules_check": "Pre-Order Rules Notice",
+    "common.ok": "OK, Got It",
+    "common.error_title": "Error",
+    "checkout.agree_terms_required": "Please agree to the Heart Kids Wear pre-order rules to place your order.",
 
     // Member Center
     "member.tab_orders": "Order Milestones",

@@ -70,6 +70,11 @@ async function runAdminAuthTests() {
     await page.check('input[name="agree_terms"]');
     await page.click('button[type="submit"]');
 
+    // Handle in-app UI modal
+    const okModalBtn = page.locator('.modal-content button.btn-primary');
+    await okModalBtn.waitFor({ state: "visible", timeout: 8000 });
+    await okModalBtn.click();
+
     await page.waitForURL("**/products", { timeout: 10000 });
 
     // Try accessing /admin with regular member token
