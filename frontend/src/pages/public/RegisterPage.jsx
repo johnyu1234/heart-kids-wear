@@ -39,11 +39,15 @@ export function RegisterPage() {
     setError("");
 
     if (formData.password !== formData.confirmPassword) {
-      setError("兩次輸入的密碼不相符");
+      const msg = "兩次輸入的密碼不相符";
+      setError(msg);
+      alert(msg);
       return;
     }
     if (!formData.agree_terms) {
-      setError("請勾選並確認心童裝購物規則說明");
+      const msg = t("auth.agree_terms_required") || "請勾選並同意心童裝購物規則說明才能完成註冊";
+      setError(msg);
+      alert(msg);
       return;
     }
 
@@ -65,7 +69,9 @@ export function RegisterPage() {
       alert("🎉 註冊成功！系統已為您存入 60 點首購免運禮物卡！");
       navigate("/products");
     } catch (err) {
-      setError(err.response?.data?.detail || "註冊失敗，請確認資料是否填寫完整");
+      const errorDetail = err.response?.data?.detail || "註冊失敗，請確認資料是否填寫完整";
+      setError(errorDetail);
+      alert(errorDetail);
     } finally {
       setLoading(false);
     }
@@ -258,7 +264,13 @@ export function RegisterPage() {
           </div>
 
           {/* Shopping Rules Checkbox */}
-          <div style={{ backgroundColor: "var(--bg-subtle)", padding: "14px", borderRadius: "var(--radius-md)" }}>
+          <div style={{
+            backgroundColor: !formData.agree_terms && error === (t("auth.agree_terms_required") || "請勾選並同意心童裝購物規則說明才能完成註冊") ? "#FEF2F2" : "var(--bg-subtle)",
+            border: !formData.agree_terms && error === (t("auth.agree_terms_required") || "請勾選並同意心童裝購物規則說明才能完成註冊") ? "2px solid #EF4444" : "1px solid transparent",
+            padding: "14px",
+            borderRadius: "var(--radius-md)",
+            transition: "all 0.2s ease"
+          }}>
             <label style={{ display: "flex", gap: "10px", fontSize: "0.82rem", color: "var(--text-main)", cursor: "pointer", lineHeight: "1.6" }}>
               <input
                 type="checkbox"
@@ -269,6 +281,11 @@ export function RegisterPage() {
               />
               <span>{t("auth.rules_agreement")}</span>
             </label>
+            {!formData.agree_terms && error === (t("auth.agree_terms_required") || "請勾選並同意心童裝購物規則說明才能完成註冊") && (
+              <div style={{ color: "#DC2626", fontSize: "0.8rem", fontWeight: "700", marginTop: "8px", display: "flex", alignItems: "center", gap: "4px" }}>
+                ⚠️ {t("auth.agree_terms_required")}
+              </div>
+            )}
           </div>
 
           <button

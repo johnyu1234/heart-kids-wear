@@ -130,6 +130,7 @@ export const translations = {
     "auth.section_survey": "3. 社群管道調查",
     "auth.survey_label": "您最初是從哪個管道得知心童裝？",
     "auth.rules_agreement": "我同意且會配合心童裝的購物規則（預購採購確認後無法取消或更改，斷貨全額退購物金，拆封請全程錄影）",
+    "auth.agree_terms_required": "請勾選並同意心童裝購物規則說明才能完成註冊",
     "auth.btn_register_submit": "確認送出並領取 60 點",
     "auth.have_account": "已有帳號？直接登入",
 
@@ -302,6 +303,7 @@ export const translations = {
     "auth.section_survey": "3. Marketing Survey",
     "auth.survey_label": "How did you hear about Heart Kids Wear?",
     "auth.rules_agreement": "I agree to follow Heart Kids Wear pre-order rules (no cancellation after purchase, 100% store credit refund for stockout, unboxing video required).",
+    "auth.agree_terms_required": "Please agree to the Heart Kids Wear pre-order rules to complete registration.",
     "auth.btn_register_submit": "Complete Registration & Get 60 Pts",
     "auth.have_account": "Already have an account? Sign in",
 
