@@ -10,16 +10,17 @@ export function AnnouncementBar() {
       backgroundColor: "var(--primary-heart)",
       color: "#FFFFFF",
       textAlign: "center",
-      padding: "8px 16px",
-      fontSize: "0.85rem",
+      padding: "6px 12px",
+      fontSize: "0.8rem",
       fontWeight: "600",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      gap: "8px",
-      letterSpacing: "0.5px"
+      gap: "6px",
+      letterSpacing: "0.2px",
+      lineHeight: "1.4"
     }}>
-      <Sparkles size={16} />
+      <Sparkles size={14} style={{ flexShrink: 0 }} />
       <span>{t("announcement.text")}</span>
     </div>
   );

@@ -367,6 +367,222 @@ button {
    Mobile Web App & Bottom Navigation Bar (PWA Experience)
    ========================================================================== */
 
+/* ==========================================================================
+   Header Component Styles (Desktop & Mobile)
+   ========================================================================== */
+.site-header {
+  background-color: #FFFFFF;
+  border-bottom: 1px solid var(--border-light);
+  position: sticky;
+  top: 0;
+  z-index: 800;
+}
+
+.header-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.header-main-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 68px;
+  width: 100%;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.brand-icon {
+  font-size: 1.6rem;
+}
+
+.brand-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.18rem;
+  color: var(--primary-heart);
+  letter-spacing: -0.3px;
+  line-height: 1.1;
+}
+
+.brand-subtitle {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.header-search-desktop {
+  flex: 1;
+  max-width: 360px;
+  margin: 0 16px;
+}
+
+.header-mobile-search {
+  display: none;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.lang-switcher {
+  display: flex;
+  align-items: center;
+  background-color: var(--bg-subtle);
+  border-radius: var(--radius-full);
+  padding: 2px 4px;
+}
+
+.lang-btn {
+  padding: 4px 8px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  border-radius: var(--radius-full);
+  transition: all 0.15s ease;
+}
+
+.lang-btn.active {
+  font-weight: 800;
+  color: #FFFFFF;
+  background-color: var(--primary-heart);
+}
+
+.header-icon-btn {
+  color: var(--text-main);
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-user-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-main);
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+
+.user-name-text {
+  max-width: 85px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header-cart-btn {
+  position: relative;
+  padding: 6px 10px;
+  border-radius: var(--radius-full);
+  background-color: var(--bg-subtle);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-main);
+}
+
+.cart-count-badge {
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--primary-heart);
+}
+
+/* ==========================================================================
+   Home Page Hero & Section Styles
+   ========================================================================== */
+.hero-section {
+  background: linear-gradient(135deg, #FFF5F5 0%, #FFF0EB 50%, #FDFBF7 100%);
+  padding: 56px 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 40px;
+  align-items: center;
+}
+
+.hero-image-container {
+  position: relative;
+}
+
+.hero-image {
+  width: 100%;
+  height: 380px;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.hero-trust-badge {
+  position: absolute;
+  bottom: -14px;
+  left: -14px;
+  background-color: #FFFFFF;
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.features-section {
+  padding: 32px 0;
+  border-bottom: 1px solid var(--border-light);
+  background-color: #FFFFFF;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+}
+
+.category-card {
+  text-align: center;
+  padding: 20px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  border-radius: var(--radius-lg);
+}
+
+.category-icon {
+  font-size: 2.2rem;
+}
+
+/* ==========================================================================
+   Mobile Web App & Bottom Navigation Bar (PWA Experience)
+   ========================================================================== */
+
 .mobile-nav-bar {
   display: none;
 }
@@ -381,10 +597,103 @@ button {
     padding: 0 14px;
   }
 
-  /* Header compact on mobile */
-  header .container {
-    height: 60px !important;
-    gap: 8px;
+  /* Mobile Header */
+  .header-main-row {
+    height: 52px;
+  }
+  .brand-title {
+    font-size: 1.05rem;
+  }
+  .brand-subtitle {
+    font-size: 0.68rem;
+  }
+  .header-search-desktop {
+    display: none;
+  }
+  .header-mobile-search {
+    display: block;
+    padding-bottom: 8px;
+  }
+  .user-name-text {
+    display: none;
+  }
+  .header-login-btn span {
+    display: none;
+  }
+  .header-login-btn {
+    padding: 6px 8px;
+  }
+
+  /* Mobile Hero */
+  .hero-section {
+    padding: 24px 0 28px;
+  }
+  .hero-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .hero-title {
+    font-size: 1.55rem;
+    line-height: 1.25;
+    margin-bottom: 10px;
+  }
+  .hero-subtitle {
+    font-size: 0.92rem;
+    line-height: 1.5;
+    margin-bottom: 18px;
+  }
+  .hero-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+  .hero-buttons .btn {
+    width: 100%;
+    justify-content: center;
+    font-size: 0.92rem;
+    padding: 12px 16px;
+  }
+  .hero-image-container {
+    width: 100%;
+    margin-top: 4px;
+  }
+  .hero-image {
+    height: 240px;
+  }
+  .hero-trust-badge {
+    position: static;
+    margin-top: 12px;
+    width: 100%;
+    box-sizing: border-box;
+    justify-content: center;
+  }
+
+  /* Mobile Features */
+  .features-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .feature-item {
+    justify-content: flex-start;
+    padding: 10px 14px;
+    background-color: var(--bg-subtle);
+    border-radius: var(--radius-md);
+  }
+
+  /* Mobile Categories */
+  .category-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .category-card {
+    padding: 12px 8px;
+  }
+  .category-icon {
+    font-size: 1.8rem;
+  }
+
+  /* Hide floating chat button on mobile to avoid overlapping content */
+  .floating-chat-btn {
+    display: none !important;
   }
 
   .mobile-nav-bar {
@@ -395,7 +704,7 @@ button {
     right: 0;
     height: calc(60px + env(safe-area-inset-bottom, 0px));
     padding-bottom: env(safe-area-inset-bottom, 0px);
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.96);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-top: 1px solid var(--border-light);
@@ -448,14 +757,6 @@ button {
     justify-content: center;
     padding: 0 4px;
     box-shadow: 0 2px 5px rgba(224, 93, 93, 0.4);
-  }
-
-  /* Adjust floating chat button position on mobile */
-  .floating-chat-btn {
-    bottom: calc(72px + env(safe-area-inset-bottom, 0px));
-    right: 18px;
-    width: 48px;
-    height: 48px;
   }
 }
 

@@ -36,70 +36,44 @@ export function HomePage() {
   return (
     <div>
       {/* Hero Banner — Group Buying Campaign */}
-      <section style={{
-        background: "linear-gradient(135deg, #FFF5F5 0%, #FFF0EB 50%, #FDFBF7 100%)",
-        padding: "64px 0",
-        borderBottom: "1px solid var(--border-light)"
-      }}>
-        <div className="container" style={{
-          display: "grid",
-          gridTemplateColumns: "1.2fr 1fr",
-          gap: "48px",
-          alignItems: "center"
-        }}>
-          <div>
-            <span className="badge" style={{ backgroundColor: "var(--primary-heart-light)", color: "var(--primary-heart)", marginBottom: "16px" }}>
+      <section className="hero-section">
+        <div className="container hero-grid">
+          <div className="hero-content">
+            <span className="badge" style={{ backgroundColor: "var(--primary-heart-light)", color: "var(--primary-heart)", marginBottom: "14px" }}>
               {t("home.badge")}
             </span>
-            <h1 className="heading-xl" style={{ color: "var(--text-main)", marginBottom: "16px" }}>
+            <h1 className="heading-xl hero-title" style={{ color: "var(--text-main)", marginBottom: "14px" }}>
               {t("home.hero_title")}
             </h1>
-            <p style={{ fontSize: "1.1rem", color: "var(--text-muted)", marginBottom: "28px", lineHeight: "1.7" }}>
+            <p className="hero-subtitle" style={{ fontSize: "1.05rem", color: "var(--text-muted)", marginBottom: "24px", lineHeight: "1.6" }}>
               {t("home.hero_subtitle")}
             </p>
-            <div style={{ display: "flex", gap: "14px", flexWrap: "wrap" }}>
-              <Link to="/products" className="btn btn-primary btn-lg">
+            <div className="hero-buttons" style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+              <Link to="/products" className="btn btn-primary btn-lg" style={{ whiteSpace: "nowrap" }}>
                 {t("home.btn_browse")} <ArrowRight size={18} />
               </Link>
               {user ? (
-                <Link to="/member/account" className="btn btn-secondary btn-lg">
+                <Link to="/member/account" className="btn btn-secondary btn-lg" style={{ whiteSpace: "nowrap" }}>
                   <User size={18} /> {t("home.btn_account")}
                 </Link>
               ) : (
-                <Link to="/register" className="btn btn-secondary btn-lg">
+                <Link to="/register" className="btn btn-secondary btn-lg" style={{ whiteSpace: "nowrap" }}>
                   {t("home.btn_gift")}
                 </Link>
               )}
             </div>
           </div>
 
-          <div style={{ position: "relative" }}>
+          <div className="hero-image-container">
             <img
               src="https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=800"
               alt="Heart Kids Wear Banner"
-              style={{
-                width: "100%",
-                height: "380px",
-                objectFit: "cover",
-                borderRadius: "var(--radius-lg)",
-                boxShadow: "var(--shadow-lg)"
-              }}
+              className="hero-image"
             />
-            <div style={{
-              position: "absolute",
-              bottom: "-16px",
-              left: "-16px",
-              backgroundColor: "#FFFFFF",
-              padding: "12px 20px",
-              borderRadius: "var(--radius-md)",
-              boxShadow: "var(--shadow-md)",
-              display: "flex",
-              alignItems: "center",
-              gap: "10px"
-            }}>
+            <div className="hero-trust-badge">
               <span style={{ fontSize: "1.5rem" }}>📦</span>
               <div>
-                <div style={{ fontWeight: "700", fontSize: "0.9rem" }}>{t("home.store_pickup")}</div>
+                <div style={{ fontWeight: "700", fontSize: "0.88rem" }}>{t("home.store_pickup")}</div>
                 <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>{t("home.discount_note")}</div>
               </div>
             </div>
@@ -108,70 +82,61 @@ export function HomePage() {
       </section>
 
       {/* Feature Highlights */}
-      <section style={{ padding: "36px 0", borderBottom: "1px solid var(--border-light)", backgroundColor: "#FFFFFF" }}>
-        <div className="container" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "24px", textAlign: "center" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px" }}>
-            <ShieldCheck size={32} style={{ color: "var(--primary-heart)" }} />
+      <section className="features-section">
+        <div className="container features-grid">
+          <div className="feature-item">
+            <ShieldCheck size={28} style={{ color: "var(--primary-heart)", flexShrink: 0 }} />
             <div style={{ textAlign: "left" }}>
-              <div style={{ fontWeight: "700", fontSize: "0.95rem" }}>{t("home.feature_1_title")}</div>
-              <div style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>{t("home.feature_1_desc")}</div>
+              <div style={{ fontWeight: "700", fontSize: "0.92rem" }}>{t("home.feature_1_title")}</div>
+              <div style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>{t("home.feature_1_desc")}</div>
             </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px" }}>
-            <Truck size={32} style={{ color: "var(--accent-gold)" }} />
+          <div className="feature-item">
+            <Truck size={28} style={{ color: "var(--accent-gold)", flexShrink: 0 }} />
             <div style={{ textAlign: "left" }}>
-              <div style={{ fontWeight: "700", fontSize: "0.95rem" }}>{t("home.feature_2_title")}</div>
-              <div style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>{t("home.feature_2_desc")}</div>
+              <div style={{ fontWeight: "700", fontSize: "0.92rem" }}>{t("home.feature_2_title")}</div>
+              <div style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>{t("home.feature_2_desc")}</div>
             </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px" }}>
-            <RefreshCw size={32} style={{ color: "var(--accent-mint)" }} />
+          <div className="feature-item">
+            <RefreshCw size={28} style={{ color: "var(--accent-mint)", flexShrink: 0 }} />
             <div style={{ textAlign: "left" }}>
-              <div style={{ fontWeight: "700", fontSize: "0.95rem" }}>{t("home.feature_3_title")}</div>
-              <div style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>{t("home.feature_3_desc")}</div>
+              <div style={{ fontWeight: "700", fontSize: "0.92rem" }}>{t("home.feature_3_title")}</div>
+              <div style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>{t("home.feature_3_desc")}</div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Category Navigation Cards */}
-      <section style={{ padding: "60px 0" }}>
+      <section style={{ padding: "48px 0" }}>
         <div className="container">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "32px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "24px" }}>
             <div>
-              <span className="badge" style={{ backgroundColor: "var(--accent-gold-light)", color: "var(--accent-gold)", marginBottom: "8px" }}>
+              <span className="badge" style={{ backgroundColor: "var(--accent-gold-light)", color: "var(--accent-gold)", marginBottom: "6px" }}>
                 {t("home.category_badge")}
               </span>
-              <h2 className="heading-lg">{t("home.category_title")}</h2>
+              <h2 className="heading-lg" style={{ fontSize: "1.45rem" }}>{t("home.category_title")}</h2>
             </div>
-            <Link to="/products" style={{ color: "var(--primary-heart)", fontWeight: "600", fontSize: "0.9rem", display: "flex", alignItems: "center", gap: "4px" }}>
+            <Link to="/products" style={{ color: "var(--primary-heart)", fontWeight: "600", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "4px" }}>
               {t("home.all_categories")} <ArrowRight size={16} />
             </Link>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "16px" }}>
+          <div className="category-grid">
             {categories.slice(0, 5).map((cat, idx) => {
               const icons = ["👦", "👧", "👶", "🎀", "🧸"];
               return (
                 <Link
                   key={cat.id}
                   to={`/products?category_id=${cat.id}`}
-                  className="card"
-                  style={{
-                    textAlign: "center",
-                    padding: "24px 16px",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: "10px",
-                    borderRadius: "var(--radius-lg)"
-                  }}
+                  className="card category-card"
                 >
-                  <span style={{ fontSize: "2.5rem" }}>{icons[idx] || "👕"}</span>
-                  <div style={{ fontWeight: "700", fontSize: "1rem" }}>
+                  <span className="category-icon">{icons[idx] || "👕"}</span>
+                  <div style={{ fontWeight: "700", fontSize: "0.95rem" }}>
                     {lang === "en" ? cat.name_en : cat.name_zh}
                   </div>
-                  <div style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
+                  <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
                     {lang === "en" ? cat.name_zh : cat.name_en}
                   </div>
                 </Link>
