@@ -246,8 +246,8 @@ async function runCustomerOperationsTests() {
     const msgText = `【E2E 詢問】請問我剛登記的訂單大約何時會抵達台灣呢？(${Date.now().toString().slice(-4)})`;
     await page.fill('input[placeholder*="輸入您的詢問內容"], input[placeholder*="詢問"]', msgText);
     await page.click('button:has-text("發送"), button[type="submit"]');
-    await page.waitForTimeout(1000);
 
+    await page.locator(`text=${msgText}`).first().waitFor({ state: "visible", timeout: 8000 });
     assert(await page.locator(`text=${msgText}`).first().isVisible(), "Customer service inquiry sent and displayed in chat thread");
 
     // ----------------------------------------------------

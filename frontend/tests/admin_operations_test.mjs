@@ -192,10 +192,9 @@ async function runAdminOperationsTests() {
     // ----------------------------------------------------
     console.log("\n--- [TEST 4] Order Management & Shipping Tracking ---");
     await page.goto("http://localhost:5173/admin/orders");
-    await page.waitForLoadState("networkidle");
-
     // Verify order list is rendered
     const orderTable = page.locator("table").first();
+    await orderTable.waitFor({ state: "visible", timeout: 8000 });
     assert(await orderTable.isVisible(), "Admin Order management table rendered");
 
     // Filter by status

@@ -15,12 +15,33 @@ The test automation framework SHALL automatically create a clean database snapsh
 - **WHEN** tests complete all write mutations and assertions
 - **THEN** the original database is restored and the backup file is removed cleanly
 
+### Requirement: In-App UI Pop-Up Modal System
+The system SHALL display all validation errors, rule warnings, and success notices using an in-app UI pop-up modal dialog with backdrop blur, dynamic icon badges, and localized action buttons instead of browser-native `alert()` dialogs.
+
+#### Scenario: In-app popup for validation warnings and notices
+- **WHEN** a validation error, pre-order rule warning, or milestone notice is triggered
+- **THEN** the system renders a custom in-app `UIModal` popup over the interface
+- **THEN** no native browser `window.alert()` dialog is invoked
+- **THEN** the user can dismiss the modal by clicking the action button or the close icon
+
+### Requirement: Authenticated User Navigation & Registration Restrictions
+The system SHALL restrict authenticated users from accessing visitor-only pages (such as registration and login) and dynamically adapt home page call-to-action buttons.
+
+#### Scenario: Logged-in customer accesses registration or login
+- **WHEN** an authenticated user navigates directly to `/register` or `/login`
+- **THEN** the application automatically intercepts the request and redirects the user away to `/products` or `/`
+- **THEN** duplicate account registration while logged in is strictly prevented
+
+#### Scenario: Dynamic home page CTA adaptation
+- **WHEN** an authenticated customer views the home page
+- **THEN** the hero action button dynamically adapts from "Claim 60 Pts Bonus" to "Member Center" (`/member/account`)
+
 ### Requirement: Customer Registration Terms Validation
-The system SHALL prevent customer registration and display an explicit alert dialog and visual highlight if the customer submits without agreeing to pre-order shopping rules.
+The system SHALL prevent customer registration and display an in-app UI pop-up modal and visual highlight if the customer submits without agreeing to pre-order shopping rules.
 
 #### Scenario: Registration attempted with unchecked rules box
 - **WHEN** a visitor submits the registration form with `agree_terms` unchecked
-- **THEN** the browser displays a localized alert dialog requesting agreement
+- **THEN** the in-app `UIModal` displays a localized rule agreement notice
 - **THEN** the shopping rules section highlights with a red outline and warning marker
 - **THEN** no registration API call is dispatched
 

@@ -186,8 +186,28 @@ async function runAuthTests() {
     const headerText = await page.textContent("header");
     assert(headerText.includes(testUser.fullName), "User full name displayed in header navigation");
 
+    // ----------------------------------------------------
+    // TEST 7: Logged-in User Restrictions (Register / Login / Hero CTA)
+    // ----------------------------------------------------
+    console.log("\n--- [TEST 7] Logged-in User Restrictions & Dynamic Navigation ---");
+    // Verify hero CTA switches to Member Account
+    await page.goto("http://localhost:5173/");
+    await page.waitForLoadState("networkidle");
+    const memberCenterBtn = await page.locator('a:has-text("會員中心"), a:has-text("Member Center")').first().isVisible();
+    assert(memberCenterBtn, "Home page hero CTA switches to '會員中心' when authenticated");
+
+    // Attempting to visit /register while authenticated redirects away
+    await page.goto("http://localhost:5173/register");
+    await page.waitForURL("**/products", { timeout: 8000 });
+    assert(page.url().includes("/products"), "Authenticated user navigating to /register is restricted and redirected to /products");
+
+    // Attempting to visit /login while authenticated redirects away
+    await page.goto("http://localhost:5173/login");
+    await page.waitForURL("http://localhost:5173/", { timeout: 8000 });
+    assert(page.url() === "http://localhost:5173/" || page.url().includes("5173"), "Authenticated user navigating to /login is restricted and redirected");
+
     console.log(`\n==============================================`);
-    console.log(`🎉 ALL 6/6 TEST SUITES (${passedSteps}/${totalSteps} ASSERTIONS) PASSED SUCCESSFULLY!`);
+    console.log(`🎉 ALL 7/7 TEST SUITES (${passedSteps}/${totalSteps} ASSERTIONS) PASSED SUCCESSFULLY!`);
     console.log(`==============================================\n`);
 
   } catch (error) {

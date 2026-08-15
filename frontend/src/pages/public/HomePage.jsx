@@ -3,10 +3,12 @@ import { Link } from "react-router-dom";
 import { api } from "../../api/client";
 import { formatCurrency } from "../../utils/currency";
 import { useTranslation } from "../../i18n/I18nContext";
-import { Sparkles, ArrowRight, ShieldCheck, Truck, RefreshCw, Heart } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
+import { Sparkles, ArrowRight, ShieldCheck, Truck, RefreshCw, Heart, User } from "lucide-react";
 
 export function HomePage() {
+  const { user } = useAuth();
   const [categories, setCategories] = useState([]);
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -55,13 +57,19 @@ export function HomePage() {
             <p style={{ fontSize: "1.1rem", color: "var(--text-muted)", marginBottom: "28px", lineHeight: "1.7" }}>
               {t("home.hero_subtitle")}
             </p>
-            <div style={{ display: "flex", gap: "14px" }}>
+            <div style={{ display: "flex", gap: "14px", flexWrap: "wrap" }}>
               <Link to="/products" className="btn btn-primary btn-lg">
                 {t("home.btn_browse")} <ArrowRight size={18} />
               </Link>
-              <Link to="/register" className="btn btn-secondary btn-lg">
-                {t("home.btn_gift")}
-              </Link>
+              {user ? (
+                <Link to="/member/account" className="btn btn-secondary btn-lg">
+                  <User size={18} /> {t("home.btn_account")}
+                </Link>
+              ) : (
+                <Link to="/register" className="btn btn-secondary btn-lg">
+                  {t("home.btn_gift")}
+                </Link>
+              )}
             </div>
           </div>
 

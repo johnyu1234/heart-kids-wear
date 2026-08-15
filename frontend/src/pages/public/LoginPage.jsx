@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useTranslation } from "../../i18n/I18nContext";
@@ -12,11 +12,22 @@ export function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { login } = useAuth();
+  const { user, login } = useAuth();
+  const [initialUser] = useState(user);
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirect = searchParams.get("redirect") || "/";
+
+  useEffect(() => {
+    if (initialUser) {
+      navigate(redirect === "/login" || redirect === "/register" ? "/" : redirect, { replace: true });
+    }
+  }, [initialUser, navigate, redirect]);
+
+  if (initialUser) {
+    return null;
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();

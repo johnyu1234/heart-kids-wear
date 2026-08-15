@@ -79,15 +79,17 @@ async function runAdminAuthTests() {
 
     // Try accessing /admin with regular member token
     await page.goto("http://localhost:5173/admin");
-    await page.waitForURL("**/login", { timeout: 8000 });
-    assert(page.url().includes("/login"), "Regular non-admin member accessing /admin is redirected to /login");
+    await page.waitForLoadState("networkidle");
+    assert(!page.url().includes("/admin"), "Regular non-admin member accessing /admin is redirected and blocked");
 
     // ----------------------------------------------------
     // TEST 3: Admin Login Flow & Admin Badge
     // ----------------------------------------------------
     console.log("\n--- [TEST 3] Admin Authentication Flow ---");
+    await page.evaluate(() => localStorage.clear());
     await page.goto("http://localhost:5173/login");
     await page.waitForLoadState("networkidle");
+    await page.waitForSelector('input[type="email"]', { timeout: 8000 });
 
     await page.fill('input[type="email"]', adminCredentials.email);
     await page.fill('input[type="password"]', adminCredentials.password);

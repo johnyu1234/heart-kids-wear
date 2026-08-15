@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useTranslation } from "../../i18n/I18nContext";
@@ -6,9 +6,16 @@ import { Gift, ExternalLink, ArrowRight, ShieldCheck } from "lucide-react";
 import { UIModal } from "../../components/common/UIModal";
 
 export function RegisterPage() {
-  const { register } = useAuth();
+  const { user, register } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [isShowingSuccessModal, setIsShowingSuccessModal] = useState(false);
+
+  useEffect(() => {
+    if (user && !isShowingSuccessModal) {
+      navigate("/products", { replace: true });
+    }
+  }, [user, isShowingSuccessModal, navigate]);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -33,6 +40,10 @@ export function RegisterPage() {
     type: "warning",
     onCloseCallback: null,
   });
+
+  if (user && !isShowingSuccessModal) {
+    return null;
+  }
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -73,6 +84,7 @@ export function RegisterPage() {
 
     setLoading(true);
     try {
+      setIsShowingSuccessModal(true);
       await register({
         email: formData.email,
         password: formData.password,
@@ -94,6 +106,7 @@ export function RegisterPage() {
         onCloseCallback: () => navigate("/products"),
       });
     } catch (err) {
+      setIsShowingSuccessModal(false);
       const errorDetail = err.response?.data?.detail || "註冊失敗，請確認資料是否填寫完整";
       setError(errorDetail);
       setModalConfig({
