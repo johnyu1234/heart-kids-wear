@@ -137,14 +137,5 @@ npm run test:admin:ops
 
 ---
 
-## 🔑 Default Accounts (Development / Demo)
-
-| Role | Email | Password | Permissions |
-|---|---|---|---|
-| **Admin** | `admin@heartkidswear.com` | `admin123456` | Full Access to Admin Operations Panel |
-| **Customer** | `johnyu@hotmail.my` | `password123` | Storefront, Checkout & Member Center |
-
----
-
 ## 📄 License
 Heart Kids Wear (心童裝) © 2026. All rights reserved.
