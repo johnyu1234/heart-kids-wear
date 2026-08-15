@@ -1,5 +1,5 @@
 import React from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useTranslation } from "../../i18n/I18nContext";
 import {
@@ -13,7 +13,9 @@ import {
   BarChart3,
   ShoppingCart,
   LogOut,
-  Globe
+  Globe,
+  ArrowLeft,
+  Store
 } from "lucide-react";
 
 export function AdminSidebar() {
@@ -48,15 +50,25 @@ export function AdminSidebar() {
       display: "flex",
       flexDirection: "column"
     }}>
-      {/* Brand Header */}
-      <div style={{ padding: "0 12px", marginBottom: "20px" }}>
+      {/* Brand Header with Clickable Heart to return to user view */}
+      <div style={{ padding: "0 8px", marginBottom: "20px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <span style={{ fontSize: "1.5rem" }}>❤️</span>
+          <Link
+            to="/"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              textDecoration: "none",
+              cursor: "pointer",
+            }}
+            title={`${t("admin.back_to_store")} (Storefront)`}
+          >
+            <span style={{ fontSize: "1.5rem", transition: "transform 0.2s ease" }}>❤️</span>
             <span style={{ fontFamily: "var(--font-display)", fontWeight: "800", fontSize: "1.15rem", color: "var(--primary-heart)" }}>
               Heart Admin
             </span>
-          </div>
+          </Link>
 
           {/* Language Switcher */}
           <button
@@ -70,16 +82,44 @@ export function AdminSidebar() {
               color: "var(--primary-heart)",
               backgroundColor: "var(--primary-heart-light)",
               padding: "4px 8px",
-              borderRadius: "var(--radius-full)"
+              borderRadius: "var(--radius-full)",
+              border: "none",
+              cursor: "pointer"
             }}
             title="Switch Language"
           >
             <Globe size={12} /> {lang === "zh" ? "EN" : "中文"}
           </button>
         </div>
-        <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "4px" }}>
+
+        <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "4px", paddingLeft: "4px" }}>
           心童裝 ｜ 管理後台系統
         </div>
+
+        {/* Dedicated Back to Storefront Link */}
+        <Link
+          to="/"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "6px",
+            fontSize: "0.8rem",
+            fontWeight: "700",
+            color: "var(--primary-heart)",
+            backgroundColor: "var(--primary-heart-light)",
+            border: "1px solid rgba(230, 57, 70, 0.2)",
+            padding: "6px 12px",
+            borderRadius: "var(--radius-md)",
+            textDecoration: "none",
+            marginTop: "12px",
+            transition: "all 0.15s ease",
+          }}
+          title="返回顧客前台商店瀏覽商品"
+        >
+          <ArrowLeft size={14} />
+          <span>{t("admin.back_to_store")}</span>
+        </Link>
       </div>
 
       {/* Nav Menu */}

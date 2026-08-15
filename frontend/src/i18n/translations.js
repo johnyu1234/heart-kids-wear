@@ -172,6 +172,7 @@ export const translations = {
     "member.chat_with_us": "前往線上客服對話",
 
     // Admin Sidebar & Dashboard
+    "admin.back_to_store": "返回前台商店",
     "admin.nav_1": "1. 儀表板總覽",
     "admin.nav_2": "2. 商品與規格管理",
     "admin.nav_3": "3. 採購出貨 (4分頁)",
@@ -368,6 +369,7 @@ export const translations = {
     "member.chat_with_us": "Go to Customer Support",
 
     // Admin Sidebar & Dashboard
+    "admin.back_to_store": "Back to Storefront",
     "admin.nav_1": "1. Dashboard Overview",
     "admin.nav_2": "2. Products & SKUs",
     "admin.nav_3": "3. Procurement & Shipping (4 Tabs)",
