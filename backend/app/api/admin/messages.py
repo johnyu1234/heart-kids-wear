@@ -85,11 +85,13 @@ def send_bulk_broadcast(
         )
         tracking_code = latest_order.tracking_code if latest_order else "未提供"
 
+        from backend.app.utils.timezone import get_taiwan_now
+        tw_now = get_taiwan_now()
         ctx = {
             "name": member.full_name,
             "tracking": tracking_code,
-            "month": str(datetime.utcnow().month),
-            "date": datetime.utcnow().strftime("%Y/%m/%d")
+            "month": str(tw_now.month),
+            "date": tw_now.strftime("%Y/%m/%d")
         }
         if payload.placeholders:
             ctx.update(payload.placeholders)

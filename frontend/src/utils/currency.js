@@ -9,16 +9,50 @@ export function formatCurrency(amount) {
   return `NT$${Math.round(num).toLocaleString("en-US")}`;
 }
 
+/**
+ * Formats date to Taiwan timezone (Asia/Taipei, UTC+8) in YYYY/MM/DD format.
+ */
 export function formatDate(dateString) {
   if (!dateString) return "";
-  const d = new Date(dateString);
+  let s = String(dateString);
+  if (!s.endsWith("Z") && !s.includes("+") && !s.includes("-", 10)) {
+    s += "Z";
+  }
+  const d = new Date(s);
   if (isNaN(d.getTime())) return dateString;
-  return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
+
+  return new Intl.DateTimeFormat("zh-TW", {
+    timeZone: "Asia/Taipei",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(d);
 }
 
-export function formatDateTime(dateString) {
+/**
+ * Formats datetime to Taiwan timezone (Asia/Taipei, UTC+8) in YYYY/MM/DD HH:mm format.
+ */
+export function formatDateTime(dateString, includeSeconds = false) {
   if (!dateString) return "";
-  const d = new Date(dateString);
+  let s = String(dateString);
+  if (!s.endsWith("Z") && !s.includes("+") && !s.includes("-", 10)) {
+    s += "Z";
+  }
+  const d = new Date(s);
   if (isNaN(d.getTime())) return dateString;
-  return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+
+  const options = {
+    timeZone: "Asia/Taipei",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  };
+  if (includeSeconds) {
+    options.second = "2-digit";
+  }
+
+  return new Intl.DateTimeFormat("zh-TW", options).format(d);
 }

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../api/client";
-import { formatCurrency } from "../../utils/currency";
+import { formatCurrency, formatDateTime } from "../../utils/currency";
 import { useTranslation } from "../../i18n/I18nContext";
 import { UIModal } from "../../components/common/UIModal";
 import {
@@ -288,7 +288,7 @@ export function OrderHistoryPage() {
                     </span>
                     {getStatusBadge(order.order_status)}
                     <span style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>
-                      下單時間：{new Date(order.created_at).toLocaleString()}
+                      下單時間：{formatDateTime(order.created_at)}
                     </span>
                   </div>
 
