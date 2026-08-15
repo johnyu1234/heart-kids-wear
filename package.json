@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "npm --prefix frontend run dev",
+    "ngrok": "powershell -ExecutionPolicy Bypass -File ./start_ngrok.ps1",
     "test:e2e": "npm --prefix frontend run test:e2e",
     "test:e2e:headed": "npm --prefix frontend run test:e2e:headed",
     "test:customer": "npm --prefix frontend run test:customer",
