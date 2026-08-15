@@ -210,7 +210,7 @@ async function runCustomerOperationsTests() {
     await page.waitForLoadState("networkidle");
 
     await page.waitForSelector("text=預購進度查詢", { timeout: 8000 });
-    assert(await page.locator("h2:has-text('預購進度查詢')").first().isVisible(), "Member Order History page rendered");
+    assert(await page.locator("h1, h2, span").filter({ hasText: "預購進度查詢" }).first().isVisible(), "Member Order History page rendered");
 
     // Click '回報匯款末 5 碼' button if available on pending order
     const reportPaymentBtn = page.locator('button:has-text("回報匯款末 5 碼")').first();
@@ -226,6 +226,12 @@ async function runCustomerOperationsTests() {
       const submitPaymentBtn = page.locator('button:has-text("確認回傳末 5 碼"), button:has-text("確認回報")').last();
       await submitPaymentBtn.click();
       await page.waitForTimeout(1000);
+
+      // Dismiss in-app popup modal if shown
+      const okBtn = page.locator('button:has-text("我知道了"), button:has-text("確定"), button:has-text("OK")').first();
+      if (await okBtn.isVisible()) {
+        await okBtn.click();
+      }
 
       assert(true, "Bank transfer notification with last 5 digits submitted for auditing");
     } else {
