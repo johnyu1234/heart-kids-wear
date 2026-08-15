@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { api } from "../../api/client";
 import { useCart } from "../../context/CartContext";
+import { useTranslation } from "../../i18n/I18nContext";
 import { formatCurrency } from "../../utils/currency";
 import { Heart, ShoppingBag, Truck, ShieldCheck, Tag, Ruler, ArrowLeft } from "lucide-react";
 
@@ -14,6 +15,7 @@ export function ProductDetailPage() {
   const [isSizeChartOpen, setIsSizeChartOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
+  const { lang, t } = useTranslation();
 
   useEffect(() => {
     async function loadProduct() {
@@ -38,11 +40,11 @@ export function ProductDetailPage() {
   };
 
   if (loading) {
-    return <div className="container" style={{ padding: "80px 20px", textAlign: "center" }}>商品載入中...</div>;
+    return <div className="container" style={{ padding: "80px 20px", textAlign: "center" }}>{t("products.loading")}</div>;
   }
 
   if (!product) {
-    return <div className="container" style={{ padding: "80px 20px", textAlign: "center" }}>找不到此商品</div>;
+    return <div className="container" style={{ padding: "80px 20px", textAlign: "center" }}>{t("products.empty")}</div>;
   }
 
   const images = product.images?.length > 0 ? product.images : [{ image_url: "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=800" }];
@@ -52,7 +54,7 @@ export function ProductDetailPage() {
       {/* Breadcrumb */}
       <div style={{ marginBottom: "20px" }}>
         <Link to="/products" style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "var(--text-muted)", fontSize: "0.88rem" }}>
-          <ArrowLeft size={16} /> 返回商品列表
+          <ArrowLeft size={16} /> {t("detail.back")}
         </Link>
       </div>
 
@@ -93,15 +95,15 @@ export function ProductDetailPage() {
         <div>
           <div style={{ marginBottom: "8px" }}>
             <span className="badge" style={{ backgroundColor: "var(--primary-heart-light)", color: "var(--primary-heart)" }}>
-              英國直送預購
+              {t("detail.badge")}
             </span>
           </div>
 
           <h1 style={{ fontSize: "1.85rem", fontWeight: "800", color: "var(--text-main)", marginBottom: "6px", lineHeight: "1.3" }}>
-            {product.name_zh}
+            {lang === "en" && product.name_en ? product.name_en : product.name_zh}
           </h1>
           <p style={{ color: "var(--text-muted)", fontSize: "0.95rem", marginBottom: "18px" }}>
-            {product.name_en}
+            {lang === "en" ? product.name_zh : product.name_en}
           </p>
 
           {/* Price */}
@@ -111,7 +113,7 @@ export function ProductDetailPage() {
                 {formatCurrency(product.retail_price_twd)}
               </span>
               <span style={{ fontSize: "0.85rem", color: "var(--accent-mint)", fontWeight: "600", display: "flex", alignItems: "center", gap: "4px" }}>
-                <Tag size={14} /> 預購單筆滿 NT$4,000 折 NT$60
+                <Tag size={14} /> {t("home.bulk_discount_hint")}
               </span>
             </div>
           </div>
@@ -130,14 +132,14 @@ export function ProductDetailPage() {
                 marginBottom: "20px"
               }}
             >
-              <Ruler size={16} /> 查看原廠尺寸對照表 (Size Chart)
+              <Ruler size={16} /> {t("detail.size_chart_btn")}
             </button>
           )}
 
           {/* Variant / Size Selector */}
           <div style={{ marginBottom: "24px" }}>
             <div style={{ fontSize: "0.9rem", fontWeight: "700", marginBottom: "10px" }}>
-              選擇規格與尺寸：<span style={{ color: "var(--primary-heart)" }}>{selectedVariant?.size_label}</span>
+              {t("detail.select_spec")} <span style={{ color: "var(--primary-heart)" }}>{selectedVariant?.size_label}</span>
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
               {product.variants?.map((v) => {
@@ -164,7 +166,7 @@ export function ProductDetailPage() {
             </div>
             {selectedVariant && (
               <div style={{ fontSize: "0.8rem", color: "var(--text-light)", marginTop: "8px" }}>
-                獨立商品貨號 (SKU): {selectedVariant.sku}
+                {t("detail.sku_label")} {selectedVariant.sku}
               </div>
             )}
           </div>
@@ -192,7 +194,7 @@ export function ProductDetailPage() {
               className="btn btn-primary btn-lg"
               style={{ flex: 1 }}
             >
-              <ShoppingBag size={20} /> 加入預購購物車
+              <ShoppingBag size={20} /> {t("detail.add_to_cart")}
             </button>
           </div>
 
@@ -208,11 +210,11 @@ export function ProductDetailPage() {
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <Truck size={16} style={{ color: "var(--accent-gold)" }} />
-              <span>7-11 店到店運費 NT$60 ｜ 超過 15 件自動為您轉為郵局宅配 NT$80</span>
+              <span>{t("detail.notice_shipping")}</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <ShieldCheck size={16} style={{ color: "var(--accent-mint)" }} />
-              <span>預購採購週期約 2-4 週，如遇原廠斷貨將全額自動退還至購物金帳戶</span>
+              <span>{t("detail.notice_refund")}</span>
             </div>
           </div>
         </div>
@@ -221,7 +223,7 @@ export function ProductDetailPage() {
       {/* Description Tab */}
       {product.description && (
         <div className="card" style={{ marginTop: "48px", padding: "32px" }}>
-          <h3 style={{ fontSize: "1.2rem", fontWeight: "700", marginBottom: "14px" }}>商品詳細介紹</h3>
+          <h3 style={{ fontSize: "1.2rem", fontWeight: "700", marginBottom: "14px" }}>{t("detail.desc_title")}</h3>
           <p style={{ color: "var(--text-main)", lineHeight: "1.8", whiteSpace: "pre-line" }}>
             {product.description}
           </p>
@@ -232,14 +234,14 @@ export function ProductDetailPage() {
       {isSizeChartOpen && (
         <div className="modal-overlay" onClick={() => setIsSizeChartOpen(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "680px" }}>
-            <h3 style={{ fontSize: "1.15rem", fontWeight: "700", marginBottom: "16px" }}>原廠尺寸對照表</h3>
+            <h3 style={{ fontSize: "1.15rem", fontWeight: "700", marginBottom: "16px" }}>{t("detail.size_chart_title")}</h3>
             <img
               src={product.size_chart_url}
               alt="Size Chart"
               style={{ width: "100%", borderRadius: "var(--radius-md)", marginBottom: "16px" }}
             />
             <button onClick={() => setIsSizeChartOpen(false)} className="btn btn-secondary btn-sm" style={{ width: "100%" }}>
-              關閉
+              {t("detail.close")}
             </button>
           </div>
         </div>

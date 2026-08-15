@@ -1,11 +1,13 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
+import { useTranslation } from "../../i18n/I18nContext";
 import { formatCurrency } from "../../utils/currency";
 import { Trash2, ShoppingBag, ArrowRight } from "lucide-react";
 
 export function CartDropdown({ onClose }) {
   const { cart, removeItem } = useCart();
+  const { t } = useTranslation();
 
   return (
     <div style={{
@@ -22,14 +24,14 @@ export function CartDropdown({ onClose }) {
       marginTop: "12px"
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px", borderBottom: "1px solid var(--border-light)", paddingBottom: "10px" }}>
-        <h4 style={{ fontSize: "1rem", fontWeight: "700" }}>預購購物車 ({cart.total_items})</h4>
-        <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>滿4,000折60元</span>
+        <h4 style={{ fontSize: "1rem", fontWeight: "700" }}>{t("cart.title")} ({cart.total_items})</h4>
+        <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>{t("home.bulk_discount_hint")}</span>
       </div>
 
       {cart.items.length === 0 ? (
         <div style={{ textAlign: "center", padding: "24px 0", color: "var(--text-muted)" }}>
           <ShoppingBag size={36} style={{ color: "var(--border-light)", marginBottom: "8px" }} />
-          <p style={{ fontSize: "0.9rem" }}>購物車目前是空的</p>
+          <p style={{ fontSize: "0.9rem" }}>{t("cart.empty")}</p>
         </div>
       ) : (
         <>
@@ -46,7 +48,7 @@ export function CartDropdown({ onClose }) {
                     {item.variant?.product?.name_zh}
                   </div>
                   <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                    {item.variant?.size_label} | {item.variant?.color || "預設"} × {item.quantity}
+                    {item.variant?.size_label} | {item.variant?.color || "Standard"} × {item.quantity}
                   </div>
                   <div style={{ fontSize: "0.85rem", fontWeight: "700", color: "var(--primary-heart)" }}>
                     {formatCurrency(item.variant?.product?.retail_price_twd * item.quantity)}
@@ -61,12 +63,12 @@ export function CartDropdown({ onClose }) {
 
           <div style={{ borderTop: "1px solid var(--border-light)", paddingTop: "12px", marginBottom: "16px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.9rem", fontWeight: "600", marginBottom: "4px" }}>
-              <span>商品小計</span>
+              <span>{t("cart.subtotal")}</span>
               <span>{formatCurrency(cart.subtotal)}</span>
             </div>
             {cart.bulk_discount > 0 && (
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", color: "var(--accent-mint)", marginBottom: "4px" }}>
-                <span>滿額優惠</span>
+                <span>{t("cart.bulk_discount")}</span>
                 <span>-{formatCurrency(cart.bulk_discount)}</span>
               </div>
             )}
@@ -74,10 +76,10 @@ export function CartDropdown({ onClose }) {
 
           <div style={{ display: "flex", gap: "8px" }}>
             <Link to="/cart" onClick={onClose} className="btn btn-secondary" style={{ flex: 1, padding: "8px" }}>
-              查看購物車
+              {t("cart.view_cart")}
             </Link>
             <Link to="/checkout" onClick={onClose} className="btn btn-primary" style={{ flex: 1, padding: "8px" }}>
-              前往結帳 <ArrowRight size={14} />
+              {t("cart.checkout")} <ArrowRight size={14} />
             </Link>
           </div>
         </>

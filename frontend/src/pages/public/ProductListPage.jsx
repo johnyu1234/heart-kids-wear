@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { api } from "../../api/client";
 import { formatCurrency } from "../../utils/currency";
+import { useTranslation } from "../../i18n/I18nContext";
 import { SlidersHorizontal, ArrowUpDown } from "lucide-react";
 
 export function ProductListPage() {
@@ -9,6 +10,7 @@ export function ProductListPage() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { lang, t } = useTranslation();
 
   const currentCategory = searchParams.get("category_id") || "";
   const currentSort = searchParams.get("sort") || "";
@@ -64,10 +66,10 @@ export function ProductListPage() {
       {/* Page Title & Search Term */}
       <div style={{ marginBottom: "28px" }}>
         <h1 className="heading-lg" style={{ marginBottom: "8px" }}>
-          {currentSearch ? `搜尋「${currentSearch}」的結果` : "全館童裝預購商品"}
+          {currentSearch ? t("products.title_search", { query: currentSearch }) : t("products.title_all")}
         </h1>
         <p style={{ color: "var(--text-muted)", fontSize: "0.95rem" }}>
-          英國原廠精選直送，所有商品皆享滿 NT$4,000 折 NT$60 優惠
+          {t("products.subtitle")}
         </p>
       </div>
 
@@ -94,7 +96,7 @@ export function ProductListPage() {
               color: !currentCategory ? "#FFFFFF" : "var(--text-main)",
             }}
           >
-            全部商品
+            {t("products.all_items")}
           </button>
           {categories.map((cat) => {
             const isSelected = currentCategory === String(cat.id);
@@ -108,7 +110,7 @@ export function ProductListPage() {
                   color: isSelected ? "#FFFFFF" : "var(--text-main)",
                 }}
               >
-                {cat.name_zh}
+                {lang === "en" ? cat.name_en : cat.name_zh}
               </button>
             );
           })}
@@ -123,9 +125,9 @@ export function ProductListPage() {
             className="form-control"
             style={{ width: "auto", padding: "6px 12px", fontSize: "0.85rem", borderRadius: "var(--radius-full)" }}
           >
-            <option value="">最新上架排序</option>
-            <option value="price_asc">價格：由低到高 (NT$)</option>
-            <option value="price_desc">價格：由高到低 (NT$)</option>
+            <option value="">{t("products.sort_latest")}</option>
+            <option value="price_asc">{t("products.sort_price_asc")}</option>
+            <option value="price_desc">{t("products.sort_price_desc")}</option>
           </select>
         </div>
       </div>
@@ -133,13 +135,13 @@ export function ProductListPage() {
       {/* Products Grid */}
       {loading ? (
         <div style={{ textAlign: "center", padding: "60px 0", color: "var(--text-muted)" }}>
-          商品載入中...
+          {t("products.loading")}
         </div>
       ) : products.length === 0 ? (
         <div style={{ textAlign: "center", padding: "80px 0", backgroundColor: "#FFFFFF", borderRadius: "var(--radius-lg)" }}>
-          <p style={{ fontSize: "1.1rem", fontWeight: "600", color: "var(--text-muted)" }}>查無符合條件的商品</p>
+          <p style={{ fontSize: "1.1rem", fontWeight: "600", color: "var(--text-muted)" }}>{t("products.empty")}</p>
           <button onClick={() => setSearchParams({})} className="btn btn-primary btn-sm" style={{ marginTop: "14px" }}>
-            清除篩選條件
+            {t("products.clear_filter")}
           </button>
         </div>
       ) : (
@@ -153,17 +155,17 @@ export function ProductListPage() {
                   style={{ width: "100%", height: "230px", objectFit: "cover", borderRadius: "var(--radius-md)" }}
                 />
                 <span className="badge" style={{ position: "absolute", top: "8px", left: "8px", backgroundColor: "#FFFFFF" }}>
-                  預購
+                  {t("home.preorder")}
                 </span>
               </Link>
 
               <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                 <div>
                   <Link to={`/products/${prod.id}`} style={{ fontWeight: "700", fontSize: "0.95rem", color: "var(--text-main)", display: "block", marginBottom: "4px" }}>
-                    {prod.name_zh}
+                    {lang === "en" && prod.name_en ? prod.name_en : prod.name_zh}
                   </Link>
                   <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "10px" }}>
-                    {prod.name_en}
+                    {lang === "en" ? prod.name_zh : prod.name_en}
                   </div>
                 </div>
 
@@ -174,7 +176,7 @@ export function ProductListPage() {
                     </div>
                   </div>
                   <Link to={`/products/${prod.id}`} className="btn btn-outline btn-sm">
-                    選規格
+                    {t("home.btn_select_spec")}
                   </Link>
                 </div>
               </div>

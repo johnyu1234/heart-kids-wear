@@ -1,7 +1,10 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "../../i18n/I18nContext";
 
 export function Footer() {
+  const { t } = useTranslation();
+
   return (
     <footer style={{
       backgroundColor: "#FFFFFF",
@@ -23,12 +26,12 @@ export function Footer() {
             </span>
           </div>
           <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", lineHeight: "1.6", maxWidth: "340px" }}>
-            心童裝專營英國各大精品與設計師童裝代購與限時預購。100% 英國原廠直送，為寶貝挑選最舒適耐穿的高質感服飾。
+            {t("footer.desc")}
           </p>
         </div>
 
         <div>
-          <h4 style={{ fontSize: "0.95rem", fontWeight: "700", marginBottom: "16px" }}>商品目錄</h4>
+          <h4 style={{ fontSize: "0.95rem", fontWeight: "700", marginBottom: "16px" }}>{t("footer.catalog")}</h4>
           <div style={{ display: "flex", flexDirection: "column", gap: "8px", fontSize: "0.85rem", color: "var(--text-muted)" }}>
             <Link to="/products?category_id=1">男孩 (Boys)</Link>
             <Link to="/products?category_id=2">女孩 (Girls)</Link>
@@ -39,17 +42,17 @@ export function Footer() {
         </div>
 
         <div>
-          <h4 style={{ fontSize: "0.95rem", fontWeight: "700", marginBottom: "16px" }}>會員服務</h4>
+          <h4 style={{ fontSize: "0.95rem", fontWeight: "700", marginBottom: "16px" }}>{t("footer.member_service")}</h4>
           <div style={{ display: "flex", flexDirection: "column", gap: "8px", fontSize: "0.85rem", color: "var(--text-muted)" }}>
-            <Link to="/member/orders">預購進度查詢</Link>
-            <Link to="/member/account">收件門市管理</Link>
-            <Link to="/member/messages">客服訊息對話</Link>
-            <Link to="/terms">購物與預購規則</Link>
+            <Link to="/member/orders">{t("member.tab_orders")}</Link>
+            <Link to="/member/account">{t("member.tab_account")}</Link>
+            <Link to="/member/messages">{t("member.tab_messages")}</Link>
+            <Link to="/terms">購物與預購規則 (Terms)</Link>
           </div>
         </div>
 
         <div>
-          <h4 style={{ fontSize: "0.95rem", fontWeight: "700", marginBottom: "16px" }}>官方社群連結</h4>
+          <h4 style={{ fontSize: "0.95rem", fontWeight: "700", marginBottom: "16px" }}>{t("footer.social")}</h4>
           <div style={{ display: "flex", flexDirection: "column", gap: "10px", fontSize: "0.85rem" }}>
             <a
               href="https://www.facebook.com"
@@ -57,7 +60,7 @@ export function Footer() {
               rel="noopener noreferrer"
               style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--text-main)", fontWeight: "600" }}
             >
-              <span style={{ fontSize: "1.2rem" }}>📘</span> Facebook 專頁
+              <span style={{ fontSize: "1.2rem" }}>📘</span> Facebook
             </a>
             <a
               href="https://www.instagram.com"
@@ -65,7 +68,7 @@ export function Footer() {
               rel="noopener noreferrer"
               style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--text-main)", fontWeight: "600" }}
             >
-              <span style={{ fontSize: "1.2rem" }}>📸</span> Instagram (@heartkidswear)
+              <span style={{ fontSize: "1.2rem" }}>📸</span> Instagram
             </a>
             <a
               href="https://line.me"
@@ -73,14 +76,14 @@ export function Footer() {
               rel="noopener noreferrer"
               style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--text-main)", fontWeight: "600" }}
             >
-              <span style={{ fontSize: "1.2rem" }}>💬</span> LINE 社群
+              <span style={{ fontSize: "1.2rem" }}>💬</span> LINE
             </a>
           </div>
         </div>
       </div>
 
       <div className="container" style={{ borderTop: "1px solid var(--border-light)", paddingTop: "20px", textAlign: "center", fontSize: "0.8rem", color: "var(--text-light)" }}>
-        © {new Date().getFullYear()} Heart Kids Wear (心童裝). All rights reserved. 7-11 交貨便 / 中華郵政宅配支援。
+        {t("footer.rights")}
       </div>
     </footer>
   );

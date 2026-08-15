@@ -2,32 +2,30 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../api/client";
 import { formatCurrency } from "../../utils/currency";
+import { useTranslation } from "../../i18n/I18nContext";
 import {
-  DollarSign,
-  ShoppingBag,
-  TrendingUp,
-  Clock,
+  Package,
   Boxes,
+  SplitSquareVertical,
   Users,
-  AlertTriangle,
-  ArrowRight
+  Megaphone,
+  Receipt,
+  BarChart3,
+  TrendingUp,
+  ArrowRight,
+  ShoppingCart
 } from "lucide-react";
 
 export function AdminDashboard() {
-  const [report, setReport] = useState(null);
-  const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
+  const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { t } = useTranslation();
 
   useEffect(() => {
     async function loadStats() {
       try {
-        const [reportRes, ordersRes] = await Promise.all([
-          api.get("/admin/finance/reports"),
-          api.get("/admin/orders")
-        ]);
-        setReport(reportRes.data);
-        const pending = ordersRes.data.filter(o => o.status === "PENDING_PAYMENT" || o.status === "PAID").length;
-        setPendingOrdersCount(pending);
+        const res = await api.get("/admin/finance/summary");
+        setSummary(res.data);
       } catch (err) {
         console.error(err);
       } finally {
@@ -37,105 +35,111 @@ export function AdminDashboard() {
     loadStats();
   }, []);
 
+  const workflows = [
+    { title: t("admin.nav_2"), desc: "建立尺寸 SKU、設定英鎊成本 £、一鍵重新開團", to: "/admin/products", icon: <Package size={24} />, color: "#E05D5D" },
+    { title: t("admin.nav_3"), desc: "未訂購 / 未到貨 / 未出貨 / 處理中 4 大分頁", to: "/admin/orders", icon: <Boxes size={24} />, color: "#F4A261" },
+    { title: t("admin.nav_4"), desc: "左側彙整需求，右側依下單時間排序撮合買家", to: "/admin/allocation", icon: <SplitSquareVertical size={24} />, color: "#2A9D8F" },
+    { title: t("admin.nav_5"), desc: "LINE / IG 私訊買家代下預購單", to: "/admin/proxy-order", icon: <ShoppingCart size={24} />, color: "#6366F1" },
+    { title: t("admin.nav_6"), desc: "買家代號查詢、標註行為（例：愛遲繳）、黑名單", to: "/admin/members", icon: <Users size={24} />, color: "#8B5CF6" },
+    { title: t("admin.nav_7"), desc: "官方範本管理、{{name}} / {{tracking}} 變數推播", to: "/admin/broadcast", icon: <Megaphone size={24} />, color: "#EC4899" },
+    { title: t("admin.nav_8"), desc: "末 5 碼對帳核銷、國際空運材積公式記帳", to: "/admin/finance", icon: <Receipt size={24} />, color: "#10B981" },
+    { title: t("admin.nav_9"), desc: "含運/不含運營業額、採購成本、期內淨利報表", to: "/admin/reports", icon: <BarChart3 size={24} />, color: "#3B82F6" },
+  ];
+
   return (
     <div>
       <div style={{ marginBottom: "28px" }}>
-        <h1 className="heading-lg">管理後台總覽 (Dashboard)</h1>
+        <h1 className="heading-lg" style={{ marginBottom: "6px" }}>{t("admin.dashboard_title")}</h1>
         <p style={{ color: "var(--text-muted)", fontSize: "0.95rem" }}>
-          即時營運指標、預購採購進度與快速工作流入口
+          心童裝 9 步標準化營運流程快速入口與數據儀表板
         </p>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid-4" style={{ marginBottom: "32px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "20px", marginBottom: "36px" }}>
         <div className="card" style={{ padding: "20px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-            <span style={{ fontSize: "0.85rem", color: "var(--text-muted)", fontWeight: "600" }}>全站總營業額 (含運)</span>
-            <DollarSign size={20} style={{ color: "var(--primary-heart)" }} />
+          <div style={{ fontSize: "0.82rem", color: "var(--text-muted)", marginBottom: "6px" }}>{t("admin.gross_revenue")}</div>
+          <div style={{ fontSize: "1.45rem", fontWeight: "800", color: "var(--text-main)" }}>
+            {formatCurrency(summary?.gross_revenue_with_shipping || 0)}
           </div>
-          <div style={{ fontSize: "1.6rem", fontWeight: "800", color: "var(--primary-heart)" }}>
-            {formatCurrency(report?.gross_revenue_with_shipping || 0)}
-          </div>
-          <div style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginTop: "4px" }}>
-            純商品營收：{formatCurrency(report?.gross_revenue_without_shipping || 0)}
+          <div style={{ fontSize: "0.75rem", color: "var(--text-light)", marginTop: "4px" }}>
+            不含運：{formatCurrency(summary?.gross_revenue_without_shipping || 0)}
           </div>
         </div>
 
         <div className="card" style={{ padding: "20px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-            <span style={{ fontSize: "0.85rem", color: "var(--text-muted)", fontWeight: "600" }}>預估純利潤 (TWD)</span>
-            <TrendingUp size={20} style={{ color: "var(--accent-mint)" }} />
+          <div style={{ fontSize: "0.82rem", color: "var(--text-muted)", marginBottom: "6px" }}>{t("admin.net_profit")}</div>
+          <div style={{ fontSize: "1.45rem", fontWeight: "800", color: "var(--accent-mint)" }}>
+            {formatCurrency(summary?.net_profit || 0)}
           </div>
-          <div style={{ fontSize: "1.6rem", fontWeight: "800", color: "var(--accent-mint)" }}>
-            {formatCurrency(report?.net_profit_twd || 0)}
-          </div>
-          <div style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginTop: "4px" }}>
-            扣除採購原價 & 營運運費
+          <div style={{ fontSize: "0.75rem", color: "var(--accent-mint)", marginTop: "4px", display: "flex", alignItems: "center", gap: "2px" }}>
+            <TrendingUp size={12} /> 扣除採購與運費支出
           </div>
         </div>
 
         <div className="card" style={{ padding: "20px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-            <span style={{ fontSize: "0.85rem", color: "var(--text-muted)", fontWeight: "600" }}>平均客單價 (AOV)</span>
-            <ShoppingBag size={20} style={{ color: "var(--accent-gold)" }} />
+          <div style={{ fontSize: "0.82rem", color: "var(--text-muted)", marginBottom: "6px" }}>{t("admin.aov")}</div>
+          <div style={{ fontSize: "1.45rem", fontWeight: "800", color: "var(--accent-gold)" }}>
+            {formatCurrency(summary?.aov || 0)}
           </div>
-          <div style={{ fontSize: "1.6rem", fontWeight: "800", color: "var(--text-main)" }}>
-            {formatCurrency(report?.average_order_value_aov || 0)}
-          </div>
-          <div style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginTop: "4px" }}>
-            累計有效訂單：{report?.total_orders_count || 0} 筆
+          <div style={{ fontSize: "0.75rem", color: "var(--text-light)", marginTop: "4px" }}>
+            總訂單數：{summary?.total_orders || 0} 筆
           </div>
         </div>
 
         <div className="card" style={{ padding: "20px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-            <span style={{ fontSize: "0.85rem", color: "var(--text-muted)", fontWeight: "600" }}>待處理/採購訂單</span>
-            <Clock size={20} style={{ color: "#E63946" }} />
+          <div style={{ fontSize: "0.82rem", color: "var(--text-muted)", marginBottom: "6px" }}>{t("admin.pending_orders")}</div>
+          <div style={{ fontSize: "1.45rem", fontWeight: "800", color: "var(--primary-heart)" }}>
+            {summary?.pending_orders_count || 0}
           </div>
-          <div style={{ fontSize: "1.6rem", fontWeight: "800", color: "#E63946" }}>
-            {pendingOrdersCount} 筆
-          </div>
-          <div style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginTop: "4px" }}>
-            包含待付款與待採購訂單
+          <div style={{ fontSize: "0.75rem", color: "var(--text-light)", marginTop: "4px" }}>
+            待英國採購或待發貨
           </div>
         </div>
       </div>
 
-      {/* Quick Flow Shortcuts */}
-      <h3 style={{ fontSize: "1.15rem", fontWeight: "700", marginBottom: "16px" }}>9 步驟標準作業流程</h3>
-      <div className="grid-3" style={{ marginBottom: "36px" }}>
-        <Link to="/admin/orders" className="card" style={{ padding: "20px", display: "flex", alignItems: "center", gap: "16px" }}>
-          <div style={{ width: "48px", height: "48px", borderRadius: "var(--radius-md)", backgroundColor: "var(--primary-heart-light)", color: "var(--primary-heart)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Boxes size={24} />
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: "700", fontSize: "1rem" }}>採購與出貨 4 大分頁</div>
-            <div style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>未訂購 / 未到貨 / 未出貨 / 處理中</div>
-          </div>
-          <ArrowRight size={18} style={{ color: "var(--text-light)" }} />
-        </Link>
+      {/* 9-Step Operating Workflow Links */}
+      <h2 style={{ fontSize: "1.2rem", fontWeight: "700", marginBottom: "18px" }}>9 步標準化營運作業控制台</h2>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "16px" }}>
+        {workflows.map((wf, idx) => (
+          <Link
+            key={idx}
+            to={wf.to}
+            className="card"
+            style={{
+              padding: "20px",
+              display: "flex",
+              alignItems: "center",
+              gap: "16px",
+              textDecoration: "none",
+              transition: "transform 0.15s ease, box-shadow 0.15s ease"
+            }}
+          >
+            <div style={{
+              width: "48px",
+              height: "48px",
+              borderRadius: "var(--radius-md)",
+              backgroundColor: `${wf.color}15`,
+              color: wf.color,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center"
+            }}>
+              {wf.icon}
+            </div>
 
-        <Link to="/admin/allocation" className="card" style={{ padding: "20px", display: "flex", alignItems: "center", gap: "16px" }}>
-          <div style={{ width: "48px", height: "48px", borderRadius: "var(--radius-md)", backgroundColor: "var(--accent-mint-light)", color: "var(--accent-mint)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <ShoppingBag size={24} />
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: "700", fontSize: "1rem" }}>左右分屏配貨分貨</div>
-            <div style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>依下單精準時間撮合買家配貨</div>
-          </div>
-          <ArrowRight size={18} style={{ color: "var(--text-light)" }} />
-        </Link>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: "700", fontSize: "1.05rem", color: "var(--text-main)", marginBottom: "2px" }}>
+                {wf.title}
+              </div>
+              <div style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>
+                {wf.desc}
+              </div>
+            </div>
 
-        <Link to="/admin/finance" className="card" style={{ padding: "20px", display: "flex", alignItems: "center", gap: "16px" }}>
-          <div style={{ width: "48px", height: "48px", borderRadius: "var(--radius-md)", backgroundColor: "var(--accent-gold-light)", color: "var(--accent-gold)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <DollarSign size={24} />
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: "700", fontSize: "1rem" }}>末5碼核帳與運費記帳</div>
-            <div style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>長寬高材積公式與收支帳本</div>
-          </div>
-          <ArrowRight size={18} style={{ color: "var(--text-light)" }} />
-        </Link>
+            <ArrowRight size={18} style={{ color: "var(--text-light)" }} />
+          </Link>
+        ))}
       </div>
     </div>
   );

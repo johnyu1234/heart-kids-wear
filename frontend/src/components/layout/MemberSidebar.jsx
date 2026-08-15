@@ -1,11 +1,13 @@
 import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { useTranslation } from "../../i18n/I18nContext";
 import { formatCurrency } from "../../utils/currency";
 import { Package, User, Heart, MessageSquare, LogOut, Coins, Gift } from "lucide-react";
 
 export function MemberSidebar() {
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -14,10 +16,10 @@ export function MemberSidebar() {
   };
 
   const navItems = [
-    { to: "/member/orders", label: "預購進度查詢", icon: <Package size={18} /> },
-    { to: "/member/account", label: "帳號與收件門市", icon: <User size={18} /> },
-    { to: "/member/wishlist", label: "願望清單", icon: <Heart size={18} /> },
-    { to: "/member/messages", label: "客服訊息對話", icon: <MessageSquare size={18} /> },
+    { to: "/member/orders", label: t("member.tab_orders"), icon: <Package size={18} /> },
+    { to: "/member/account", label: t("member.tab_account"), icon: <User size={18} /> },
+    { to: "/member/wishlist", label: t("member.tab_wishlist"), icon: <Heart size={18} /> },
+    { to: "/member/messages", label: t("member.tab_messages"), icon: <MessageSquare size={18} /> },
   ];
 
   return (
@@ -41,14 +43,14 @@ export function MemberSidebar() {
         </div>
         <h3 style={{ fontSize: "1.1rem", fontWeight: "700" }}>{user?.full_name}</h3>
         <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginTop: "2px" }}>
-          會員編號：<strong style={{ color: "var(--primary-heart)" }}>{user?.member_id || "首次購物後生成"}</strong>
+          {t("member.member_id")}：<strong style={{ color: "var(--primary-heart)" }}>{user?.member_id || "2604004"}</strong>
         </div>
 
-        {/* Store Credits & Points Balance */}
+        {/* Store Credits & Purchases */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginTop: "16px" }}>
           <div style={{ backgroundColor: "var(--bg-subtle)", padding: "8px", borderRadius: "var(--radius-sm)", textAlign: "center" }}>
             <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", display: "flex", alignItems: "center", justifyContent: "center", gap: "2px" }}>
-              <Coins size={12} style={{ color: "var(--accent-gold)" }} /> 購物金餘額
+              <Coins size={12} style={{ color: "var(--accent-gold)" }} /> {t("member.credits_balance")}
             </div>
             <div style={{ fontWeight: "800", fontSize: "0.95rem", color: "var(--primary-heart)" }}>
               {formatCurrency(user?.store_credits)}
@@ -56,10 +58,10 @@ export function MemberSidebar() {
           </div>
           <div style={{ backgroundColor: "var(--bg-subtle)", padding: "8px", borderRadius: "var(--radius-sm)", textAlign: "center" }}>
             <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", display: "flex", alignItems: "center", justifyContent: "center", gap: "2px" }}>
-              <Gift size={12} style={{ color: "var(--accent-mint)" }} /> 累計消費
+              <Gift size={12} style={{ color: "var(--accent-mint)" }} /> {t("member.total_purchases")}
             </div>
             <div style={{ fontWeight: "800", fontSize: "0.95rem", color: "var(--text-main)" }}>
-              {user?.total_purchases || 0} 次
+              {user?.total_purchases || 0}
             </div>
           </div>
         </div>
@@ -91,7 +93,7 @@ export function MemberSidebar() {
           className="btn btn-secondary"
           style={{ justifyContent: "flex-start", padding: "10px 16px", color: "var(--text-muted)", border: "none", marginTop: "12px" }}
         >
-          <LogOut size={18} /> 登出帳號
+          <LogOut size={18} /> {t("nav.logout")}
         </button>
       </div>
     </div>

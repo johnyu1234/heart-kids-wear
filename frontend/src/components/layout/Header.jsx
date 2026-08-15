@@ -3,15 +3,16 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
 import { useNotification } from "../../context/NotificationContext";
+import { useTranslation } from "../../i18n/I18nContext";
 import { CartDropdown } from "./CartDropdown";
-import { Search, Heart, User, ShoppingBag, LogOut, ShieldCheck } from "lucide-react";
+import { Search, Heart, User, ShoppingBag, Globe, ShieldCheck } from "lucide-react";
 
 export function Header() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { cart, isDropdownOpen, setIsDropdownOpen } = useCart();
   const { unreadCount } = useNotification();
+  const { lang, changeLanguage, t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
@@ -19,11 +20,9 @@ export function Header() {
     e.preventDefault();
     if (searchQuery.trim()) {
       navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
-      setIsSearchOpen(false);
     }
   };
 
-  // Click outside to close cart dropdown
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -53,20 +52,20 @@ export function Header() {
           <span style={{ fontSize: "1.8rem" }}>❤️</span>
           <div>
             <div style={{ fontFamily: "var(--font-display)", fontWeight: "800", fontSize: "1.25rem", color: "var(--primary-heart)", letterSpacing: "-0.5px" }}>
-              Heart Kids Wear
+              {t("brand.title")}
             </div>
             <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: "600", marginTop: "-2px" }}>
-              心童裝 ｜ 英國直送預購
+              {t("brand.subtitle")}
             </div>
           </div>
         </Link>
 
-        {/* Search Bar (Expandable or inline) */}
-        <div style={{ flex: 1, maxWidth: "400px", margin: "0 24px" }}>
+        {/* Search Bar */}
+        <div style={{ flex: 1, maxWidth: "380px", margin: "0 20px" }}>
           <form onSubmit={handleSearch} style={{ position: "relative" }}>
             <input
               type="text"
-              placeholder="搜尋商品名稱、品牌或分類..."
+              placeholder={t("nav.search_placeholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="form-control"
@@ -82,13 +81,46 @@ export function Header() {
           </form>
         </div>
 
-        {/* Action Icons */}
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+        {/* Actions & Language Switcher */}
+        <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+          {/* Language Switcher Button */}
+          <div style={{ display: "flex", alignItems: "center", backgroundColor: "var(--bg-subtle)", borderRadius: "var(--radius-full)", padding: "3px 6px" }}>
+            <Globe size={16} style={{ color: "var(--primary-heart)", marginLeft: "4px", marginRight: "4px" }} />
+            <button
+              onClick={() => changeLanguage("zh")}
+              style={{
+                padding: "4px 8px",
+                fontSize: "0.75rem",
+                fontWeight: lang === "zh" ? "800" : "500",
+                color: lang === "zh" ? "#FFFFFF" : "var(--text-muted)",
+                backgroundColor: lang === "zh" ? "var(--primary-heart)" : "transparent",
+                borderRadius: "var(--radius-full)",
+                transition: "all 0.15s ease"
+              }}
+            >
+              中文
+            </button>
+            <button
+              onClick={() => changeLanguage("en")}
+              style={{
+                padding: "4px 8px",
+                fontSize: "0.75rem",
+                fontWeight: lang === "en" ? "800" : "500",
+                color: lang === "en" ? "#FFFFFF" : "var(--text-muted)",
+                backgroundColor: lang === "en" ? "var(--primary-heart)" : "transparent",
+                borderRadius: "var(--radius-full)",
+                transition: "all 0.15s ease"
+              }}
+            >
+              EN
+            </button>
+          </div>
+
           {/* Wishlist Icon */}
           <Link
             to={user ? "/member/wishlist" : "/login"}
             style={{ position: "relative", color: "var(--text-main)", padding: "6px" }}
-            title="願望清單"
+            title={t("nav.wishlist")}
           >
             <Heart size={22} />
           </Link>
@@ -102,7 +134,7 @@ export function Header() {
               >
                 {user.is_admin ? (
                   <span className="badge" style={{ backgroundColor: "var(--accent-gold-light)", color: "var(--accent-gold)", gap: "4px" }}>
-                    <ShieldCheck size={14} /> 管理後台
+                    <ShieldCheck size={14} /> {t("nav.admin_panel")}
                   </span>
                 ) : (
                   <>
@@ -117,7 +149,7 @@ export function Header() {
             </div>
           ) : (
             <Link to="/login" className="btn btn-outline btn-sm">
-              <User size={16} /> 登入 / 註冊
+              <User size={16} /> {t("nav.login_register")}
             </Link>
           )}
 

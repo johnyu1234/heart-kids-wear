@@ -1,6 +1,7 @@
 import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { useTranslation } from "../../i18n/I18nContext";
 import {
   LayoutDashboard,
   PackagePlus,
@@ -11,11 +12,13 @@ import {
   Receipt,
   BarChart3,
   ShoppingCart,
-  LogOut
+  LogOut,
+  Globe
 } from "lucide-react";
 
 export function AdminSidebar() {
   const { user, logout } = useAuth();
+  const { lang, changeLanguage, t } = useTranslation();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -24,15 +27,15 @@ export function AdminSidebar() {
   };
 
   const navItems = [
-    { to: "/admin", end: true, label: "1. 儀表板總覽", icon: <LayoutDashboard size={18} /> },
-    { to: "/admin/products", label: "2. 商品與規格管理", icon: <PackagePlus size={18} /> },
-    { to: "/admin/orders", label: "3. 採購出貨 (4分頁)", icon: <Boxes size={18} /> },
-    { to: "/admin/allocation", label: "4. 配貨分貨 (左右分屏)", icon: <SplitSquareVertical size={18} /> },
-    { to: "/admin/proxy-order", label: "5. 手動代客下單", icon: <ShoppingCart size={18} /> },
-    { to: "/admin/members", label: "6. 會員 CRM 與標籤", icon: <Users size={18} /> },
-    { to: "/admin/broadcast", label: "7. 範本群發與推播", icon: <Megaphone size={18} /> },
-    { to: "/admin/finance", label: "8. 對帳與運費公式記帳", icon: <Receipt size={18} /> },
-    { to: "/admin/reports", label: "9. 財務與銷售報表", icon: <BarChart3 size={18} /> },
+    { to: "/admin", end: true, label: t("admin.nav_1"), icon: <LayoutDashboard size={18} /> },
+    { to: "/admin/products", label: t("admin.nav_2"), icon: <PackagePlus size={18} /> },
+    { to: "/admin/orders", label: t("admin.nav_3"), icon: <Boxes size={18} /> },
+    { to: "/admin/allocation", label: t("admin.nav_4"), icon: <SplitSquareVertical size={18} /> },
+    { to: "/admin/proxy-order", label: t("admin.nav_5"), icon: <ShoppingCart size={18} /> },
+    { to: "/admin/members", label: t("admin.nav_6"), icon: <Users size={18} /> },
+    { to: "/admin/broadcast", label: t("admin.nav_7"), icon: <Megaphone size={18} /> },
+    { to: "/admin/finance", label: t("admin.nav_8"), icon: <Receipt size={18} /> },
+    { to: "/admin/reports", label: t("admin.nav_9"), icon: <BarChart3 size={18} /> },
   ];
 
   return (
@@ -46,12 +49,33 @@ export function AdminSidebar() {
       flexDirection: "column"
     }}>
       {/* Brand Header */}
-      <div style={{ padding: "0 12px", marginBottom: "28px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <span style={{ fontSize: "1.5rem" }}>❤️</span>
-          <span style={{ fontFamily: "var(--font-display)", fontWeight: "800", fontSize: "1.15rem", color: "var(--primary-heart)" }}>
-            Heart Admin
-          </span>
+      <div style={{ padding: "0 12px", marginBottom: "20px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span style={{ fontSize: "1.5rem" }}>❤️</span>
+            <span style={{ fontFamily: "var(--font-display)", fontWeight: "800", fontSize: "1.15rem", color: "var(--primary-heart)" }}>
+              Heart Admin
+            </span>
+          </div>
+
+          {/* Language Switcher */}
+          <button
+            onClick={() => changeLanguage(lang === "zh" ? "en" : "zh")}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "4px",
+              fontSize: "0.75rem",
+              fontWeight: "700",
+              color: "var(--primary-heart)",
+              backgroundColor: "var(--primary-heart-light)",
+              padding: "4px 8px",
+              borderRadius: "var(--radius-full)"
+            }}
+            title="Switch Language"
+          >
+            <Globe size={12} /> {lang === "zh" ? "EN" : "中文"}
+          </button>
         </div>
         <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "4px" }}>
           心童裝 ｜ 管理後台系統
@@ -87,7 +111,7 @@ export function AdminSidebar() {
       {/* Footer / Logout */}
       <div style={{ borderTop: "1px solid var(--border-light)", paddingTop: "16px", paddingLeft: "8px", paddingRight: "8px" }}>
         <div style={{ fontSize: "0.82rem", fontWeight: "600", color: "var(--text-main)", marginBottom: "4px" }}>
-          {user?.full_name} (管理員)
+          {user?.full_name} (Admin)
         </div>
         <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "12px" }}>
           {user?.email}
@@ -97,7 +121,7 @@ export function AdminSidebar() {
           className="btn btn-secondary btn-sm"
           style={{ width: "100%", justifyContent: "center" }}
         >
-          <LogOut size={16} /> 登出後台
+          <LogOut size={16} /> {t("admin.logout")}
         </button>
       </div>
     </div>

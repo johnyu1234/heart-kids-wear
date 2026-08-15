@@ -1,69 +1,62 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { useTranslation } from "../../i18n/I18nContext";
 import { Eye, EyeOff, Lock, Mail, ArrowRight } from "lucide-react";
 
 export function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
   const { login } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirect = searchParams.get("redirect") || "/";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrorMsg("");
+    setError("");
     setLoading(true);
     try {
-      const data = await login(email, password, rememberMe);
-      if (data.is_admin) {
-        navigate("/admin");
-      } else {
-        navigate("/member/orders");
-      }
+      await login(email, password, rememberMe);
+      navigate(redirect);
     } catch (err) {
-      setErrorMsg(err.response?.data?.detail || "登入錯誤請再嘗試一次。(Login error, please try again.)");
+      setError(err.response?.data?.detail || "登入失敗，請檢查帳號密碼");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="container-sm" style={{ padding: "60px 20px" }}>
-      <div className="card" style={{ maxWidth: "460px", margin: "0 auto", padding: "36px" }}>
+    <div className="container" style={{ padding: "60px 20px", maxWidth: "480px" }}>
+      <div className="card" style={{ padding: "36px 32px" }}>
         <div style={{ textAlign: "center", marginBottom: "28px" }}>
-          <span style={{ fontSize: "2.2rem" }}>❤️</span>
-          <h1 className="heading-lg" style={{ marginTop: "8px" }}>會員登入</h1>
-          <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", marginTop: "4px" }}>
-            登入以查看您的預購進度與訂單明細
+          <div style={{ fontSize: "2rem", marginBottom: "8px" }}>❤️</div>
+          <h1 className="heading-lg" style={{ marginBottom: "6px" }}>{t("auth.login_title")}</h1>
+          <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
+            {t("auth.login_subtitle")}
           </p>
         </div>
 
-        {errorMsg && (
-          <div style={{
-            backgroundColor: "var(--primary-heart-light)",
-            color: "var(--primary-heart)",
-            padding: "12px",
-            borderRadius: "var(--radius-md)",
-            fontSize: "0.88rem",
-            marginBottom: "20px",
-            fontWeight: "600"
-          }}>
-            {errorMsg}
+        {error && (
+          <div style={{ backgroundColor: "#FEE2E2", color: "#DC2626", padding: "10px 14px", borderRadius: "var(--radius-md)", fontSize: "0.85rem", marginBottom: "20px" }}>
+            {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
           <div className="form-group">
-            <label className="form-label">電子信箱 (Email)</label>
+            <label className="form-label">{t("auth.email")}</label>
             <div style={{ position: "relative" }}>
               <input
                 type="email"
                 required
-                placeholder="user@example.com (不分大小寫)"
+                placeholder="example@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="form-control"
@@ -75,16 +68,16 @@ export function LoginPage() {
 
           <div className="form-group">
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
-              <label className="form-label" style={{ marginBottom: 0 }}>密碼 (Password)</label>
-              <Link to="/forgot-password" style={{ fontSize: "0.82rem", color: "var(--primary-heart)" }}>
-                忘記密碼？
+              <label className="form-label" style={{ margin: 0 }}>{t("auth.password")}</label>
+              <Link to="/forgot-password" style={{ fontSize: "0.8rem", color: "var(--primary-heart)" }}>
+                {t("auth.forgot_password")}
               </Link>
             </div>
             <div style={{ position: "relative" }}>
               <input
                 type={showPassword ? "text" : "password"}
                 required
-                placeholder="請輸入密碼"
+                placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="form-control"
@@ -94,38 +87,39 @@ export function LoginPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }}
+                style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)", padding: "2px" }}
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
 
-          <div className="form-group" style={{ marginBottom: "24px" }}>
-            <label className="form-checkbox-label">
-              <input
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-              />
-              <span>記住我的登入資訊 (Remember Me)</span>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.85rem" }}>
+            <input
+              type="checkbox"
+              id="remember"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+            />
+            <label htmlFor="remember" style={{ color: "var(--text-muted)", cursor: "pointer" }}>
+              {t("auth.remember_me")}
             </label>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="btn btn-primary"
-            style={{ width: "100%", padding: "12px", fontSize: "1rem" }}
+            className="btn btn-primary btn-lg"
+            style={{ width: "100%", marginTop: "6px" }}
           >
-            {loading ? "登入中..." : "登入"}
+            {loading ? "登入中..." : t("auth.btn_login")} <ArrowRight size={18} />
           </button>
         </form>
 
-        <div style={{ textAlign: "center", marginTop: "24px", paddingTop: "20px", borderTop: "1px solid var(--border-light)", fontSize: "0.9rem" }}>
-          還沒有心童裝帳號？{" "}
+        <div style={{ borderTop: "1px solid var(--border-light)", marginTop: "28px", paddingTop: "20px", textAlign: "center", fontSize: "0.9rem", color: "var(--text-muted)" }}>
+          {t("auth.no_account")}{" "}
           <Link to="/register" style={{ color: "var(--primary-heart)", fontWeight: "700" }}>
-            立即免費註冊 <ArrowRight size={14} style={{ display: "inline" }} />
+            {t("auth.btn_register_now")}
           </Link>
         </div>
       </div>

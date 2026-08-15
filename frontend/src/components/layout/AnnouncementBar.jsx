@@ -1,7 +1,10 @@
 import React from "react";
 import { Sparkles } from "lucide-react";
+import { useTranslation } from "../../i18n/I18nContext";
 
 export function AnnouncementBar() {
+  const { t } = useTranslation();
+
   return (
     <div style={{
       backgroundColor: "var(--primary-heart)",
@@ -17,7 +20,7 @@ export function AnnouncementBar() {
       letterSpacing: "0.5px"
     }}>
       <Sparkles size={16} />
-      <span>🎉 註冊首次送 60 點 = 7-11 免運費！快來註冊看更多商品 🛍️</span>
+      <span>{t("announcement.text")}</span>
     </div>
   );
 }
