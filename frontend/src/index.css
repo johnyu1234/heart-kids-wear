@@ -593,8 +593,65 @@ button {
   border-radius: var(--radius-lg);
 }
 
-.category-icon {
-  font-size: 2.2rem;
+/* ==========================================================================
+   Footer Component Styles
+   ========================================================================== */
+.site-footer {
+  background-color: #FFFFFF;
+  border-top: 1px solid var(--border-light);
+  padding: 48px 0 28px;
+  margin-top: 56px;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 36px;
+  margin-bottom: 36px;
+}
+
+.footer-brand-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.footer-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.footer-social-links {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.social-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-main);
+  font-weight: 600;
+  font-size: 0.88rem;
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  background-color: var(--bg-subtle);
+  transition: all 0.15s ease;
+  width: fit-content;
+}
+
+.social-btn:hover {
+  background-color: var(--bg-hover);
+  color: var(--primary-heart);
+  transform: translateX(2px);
+}
+
+.footer-bottom {
+  border-top: 1px solid var(--border-light);
+  padding-top: 20px;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-light);
 }
 
 /* ==========================================================================
@@ -738,6 +795,36 @@ button {
   }
   .category-icon {
     font-size: 1.8rem;
+  }
+
+  /* Mobile Footer */
+  .site-footer {
+    padding: 32px 0 calc(28px + env(safe-area-inset-bottom, 0px));
+    margin-top: 36px;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+
+  .footer-social-links {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .social-btn {
+    padding: 8px 14px;
+    font-size: 0.86rem;
+    background-color: var(--bg-subtle);
+    border: 1px solid var(--border-light);
+  }
+
+  .footer-bottom {
+    font-size: 0.75rem;
+    padding-bottom: 12px;
   }
 
   /* Hide floating chat button on mobile to avoid overlapping content */
