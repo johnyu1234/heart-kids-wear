@@ -46,6 +46,11 @@ yarn-error.log*
 .env.*
 !.env.example
 
+# Documents & Binary Specs
+*.docx
+*.doc
+*.pdf
+
 # IDE & OS
 .DS_Store
 Thumbs.db
