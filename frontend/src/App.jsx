@@ -4,6 +4,7 @@ import { AnnouncementBar } from "./components/layout/AnnouncementBar";
 import { Header } from "./components/layout/Header";
 import { Footer } from "./components/layout/Footer";
 import { ChatWidget } from "./components/chat/ChatWidget";
+import { MobileNavBar } from "./components/layout/MobileNavBar";
 
 // Public Pages
 import { HomePage } from "./pages/public/HomePage";
@@ -45,6 +46,7 @@ function StorefrontLayout() {
       </main>
       <Footer />
       <ChatWidget />
+      <MobileNavBar />
     </div>
   );
 }

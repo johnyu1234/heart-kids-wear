@@ -362,3 +362,186 @@ button {
   .grid-4, .grid-3, .grid-2 { grid-template-columns: 1fr; }
   .heading-xl { font-size: 1.75rem; }
 }
+
+/* ==========================================================================
+   Mobile Web App & Bottom Navigation Bar (PWA Experience)
+   ========================================================================== */
+
+.mobile-nav-bar {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  /* Provide bottom padding so pages clear the sticky bottom navigation */
+  body {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .container {
+    padding: 0 14px;
+  }
+
+  /* Header compact on mobile */
+  header .container {
+    height: 60px !important;
+    gap: 8px;
+  }
+
+  .mobile-nav-bar {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: calc(60px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border-light);
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.06);
+    z-index: 950;
+    justify-content: space-around;
+    align-items: center;
+  }
+
+  .mobile-nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.72rem;
+    font-weight: 600;
+    transition: all 0.15s ease;
+    gap: 3px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-nav-item.active {
+    color: var(--primary-heart);
+  }
+
+  .mobile-nav-icon-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mobile-nav-badge {
+    position: absolute;
+    top: -4px;
+    right: -8px;
+    background-color: var(--primary-heart);
+    color: #FFFFFF;
+    font-size: 0.65rem;
+    font-weight: 800;
+    min-width: 16px;
+    height: 16px;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    box-shadow: 0 2px 5px rgba(224, 93, 93, 0.4);
+  }
+
+  /* Adjust floating chat button position on mobile */
+  .floating-chat-btn {
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+    right: 18px;
+    width: 48px;
+    height: 48px;
+  }
+}
+
+/* ==========================================================================
+   Admin Panel Responsive Layout & Mobile Drawer
+   ========================================================================== */
+
+.admin-layout-wrapper {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--bg-main);
+}
+
+.admin-main-container {
+  flex: 1;
+  padding: 36px 40px;
+  overflow-x: auto;
+  min-width: 0;
+}
+
+.admin-desktop-sidebar {
+  width: 260px;
+  min-width: 260px;
+  background-color: #FFFFFF;
+  border-right: 1px solid var(--border-light);
+  min-height: 100vh;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-mobile-header {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .admin-layout-wrapper {
+    flex-direction: column;
+  }
+
+  .admin-desktop-sidebar {
+    display: none;
+  }
+
+  .admin-mobile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background-color: #FFFFFF;
+    border-bottom: 1px solid var(--border-light);
+    position: sticky;
+    top: 0;
+    z-index: 800;
+  }
+
+  .admin-drawer-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(45, 49, 66, 0.55);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 1000;
+    display: flex;
+  }
+
+  .admin-drawer-content {
+    width: 280px;
+    max-width: 85vw;
+    height: 100vh;
+    background-color: #FFFFFF;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-lg);
+    animation: drawerSlideIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .admin-main-container {
+    padding: 16px 12px !important;
+  }
+}
+
+@keyframes drawerSlideIn {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+
