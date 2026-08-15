@@ -1,0 +1,116 @@
+# Tasks: Heart Kids Wear (心童裝) Platform Implementation Checklist
+
+## Section A: Database Models & Fixtures (DB)
+- [x] 1. Relational Schema & ORM Models (DB)
+  - [x] 1.1 Configure SQLite WAL mode and foreign key constraints in `backend/app/database.py`
+  - [x] 1.2 Implement `Member`, `ShippingAddress`, `MemberEvent` in `backend/app/models/user.py`
+  - [x] 1.3 Implement `Category`, `GroupCampaign`, `Product`, `ProductVariant`, `ProductImage` in `backend/app/models/product.py`
+  - [x] 1.4 Implement `Order`, `OrderItem`, `PaymentRecord`, `CartItem`, `Wishlist` in `backend/app/models/order.py`
+  - [x] 1.5 Implement `Message`, `MessageTemplate`, `PointsCard`, `ExpenseLedger`, `IncomeLedger`, `SystemConfig` in `backend/app/models/finance.py`
+  - [x] 1.6 Verify model relationships, cascade delete rules, and timestamp default triggers
+- [x] 2. Database Initialization & Seed Data Fixtures (DB)
+  - [x] 2.1 Implement `backend/app/db_init.py` with idempotent seed routines
+  - [x] 2.2 Seed 14 initial system configurations
+  - [x] 2.3 Seed 5 Tier-1 categories and all Tier-2 age brackets
+  - [x] 2.4 Seed 6 standard message templates
+  - [x] 2.5 Seed initial admin account (`admin@heartkidswear.com` / `admin123456`)
+  - [x] 2.6 Seed demo member account with 60-point card bonus and pre-saved 7-11 store
+  - [x] 2.7 Seed initial group buying campaign and sample multi-size products with unique SKUs
+
+## Section B: Backend Services & API Endpoints (BE)
+- [x] 3. Authentication & Member Profile API (BE)
+  - [x] 3.1 Implement password hashing (bcrypt) and JWT encode/decode utilities in `backend/app/utils/auth.py`
+  - [x] 3.2 Implement Pydantic request/response schemas in `backend/app/schemas/user.py`
+  - [x] 3.3 Implement `POST /api/auth/register` with 7-11 info, survey, rules check, and 60-point bonus in `backend/app/api/auth.py`
+  - [x] 3.4 Implement `POST /api/auth/login` with lowercase email matching in `backend/app/api/auth.py`
+  - [x] 3.5 Implement `POST /api/auth/forgot-password` and `POST /api/auth/verify-code` in `backend/app/api/auth.py`
+  - [x] 3.6 Implement `GET /api/members/profile` and `POST /api/members/profile/update` in `backend/app/api/members.py`
+  - [x] 3.7 Implement `GET /api/members/points` and `GET /api/members/credits` in `backend/app/api/members.py`
+  - [x] 3.8 Write automated tests for registration, case-insensitive login, and profile updates
+- [x] 4. Product Catalog, Categories & Campaign API (BE)
+  - [x] 4.1 Implement Pydantic schemas in `backend/app/schemas/product.py`
+  - [x] 4.2 Implement `GET /api/categories` in `backend/app/api/categories.py`
+  - [x] 4.3 Implement `GET /api/products` with category filtering, search, and price sorting in `backend/app/api/products.py`
+  - [x] 4.4 Implement `GET /api/products/{id}` and `GET /api/products/campaign/{id}` in `backend/app/api/products.py`
+  - [x] 4.5 Implement wishlist endpoints in `backend/app/api/wishlist.py`
+  - [x] 4.6 Implement admin product import, update, archive, and relaunch endpoints in `backend/app/api/admin/products.py`
+  - [x] 4.7 Write automated tests for catalog queries, sorting, and admin import
+- [x] 5. Shopping Cart & Pre-Order Checkout API (BE)
+  - [x] 5.1 Implement cart endpoints `GET /api/cart`, `POST /api/cart/add`, `POST /api/cart/update`, `POST /api/cart/remove` in `backend/app/api/cart.py`
+  - [x] 5.2 Implement fee calculation utility in `backend/app/services/checkout_service.py` (7-11 NT$60 vs Post Office NT$80 with >15 items lock, NT$4,000 discount, store credit & points deductions)
+  - [x] 5.3 Implement `POST /api/checkout/calculate` in `backend/app/api/checkout.py`
+  - [x] 5.4 Implement order number generator (`YYMM0001`) in `backend/app/utils/id_generators.py`
+  - [x] 5.5 Implement `POST /api/checkout/submit` in `backend/app/api/checkout.py`
+  - [x] 5.6 Write automated tests for discount rules, shipping locks, and order numbering
+- [x] 6. Order Allocation & Logistics Milestones API (BE)
+  - [x] 6.1 Implement `GET /api/orders` and `GET /api/orders/{order_number}` in `backend/app/api/orders.py`
+  - [x] 6.2 Implement `GET /api/admin/orders` with 4 fulfillment tabs and multi-criteria filters in `backend/app/api/admin/orders.py`
+  - [x] 6.3 Implement `GET /api/admin/orders/allocation/{product_id}` in `backend/app/api/admin/orders.py`
+  - [x] 6.4 Implement `POST /api/admin/orders/items/update-logistics` in `backend/app/api/admin/orders.py`
+  - [x] 6.5 Implement `POST /api/admin/orders/create-for-customer` in `backend/app/api/admin/orders.py`
+  - [x] 6.6 Write automated tests for allocation priority sorting and dual-track remark isolation
+- [x] 7. Store Credits, Points & Automated Scheduler Services (BE)
+  - [x] 7.1 Implement automatic store credit refund service in `backend/app/services/credit_service.py`
+  - [x] 7.2 Implement `POST /api/admin/members/issue-points` in `backend/app/api/admin/members.py`
+  - [x] 7.3 Implement automated 4-stage payment deadline escalation scheduler in `backend/app/services/scheduler_service.py`
+  - [x] 7.4 Implement scheduled product publish/delist cron worker in `backend/app/services/scheduler_service.py`
+  - [x] 7.5 Write automated tests for store credit auto-refund execution and overdue state transitions
+- [x] 8. Live Chat, Unread Badges & Broadcast Messaging API (BE)
+  - [x] 8.1 Implement customer chat endpoints with automated welcome replies in `backend/app/api/messages.py`
+  - [x] 8.2 Implement unread count and mark-as-read endpoints in `backend/app/api/messages.py`
+  - [x] 8.3 Implement admin individual and bulk broadcast endpoints in `backend/app/api/admin/messages.py`
+  - [x] 8.4 Implement dynamic variable replacement utility (`{{name}}`, `{{tracking}}`) in `backend/app/services/notification_service.py`
+  - [x] 8.5 Write automated tests for chat welcome auto-replies and template variable parsing
+- [x] 9. Financial Ledgers, Payment Audit & Analytics API (BE)
+  - [x] 9.1 Implement payment log queries and manual confirmation endpoint in `backend/app/api/admin/finance.py`
+  - [x] 9.2 Implement expense ledger endpoints with volumetric freight formula support in `backend/app/api/admin/finance.py`
+  - [x] 9.3 Implement income ledger endpoints in `backend/app/api/admin/finance.py`
+  - [x] 9.4 Implement revenue, profit, and AOV aggregation analytics endpoint in `backend/app/api/admin/finance.py`
+  - [x] 9.5 Write automated tests for freight formula calculations and revenue metrics
+- [x] 10. FastAPI Router, Middleware & OpenAPI Documentation (BE)
+  - [x] 10.1 Assemble all customer and admin routers in `backend/app/api/router.py`
+  - [x] 10.2 Configure CORS middleware, error handlers, and application lifespan in `backend/app/main.py`
+  - [x] 10.3 Verify complete Swagger UI (`/docs`) and OpenAPI spec (`/openapi.json`)
+
+## Section C: Frontend Views, Design System & Customer Experience (FE)
+- [x] 11. Design System, Tokens & Layout Components (FE)
+  - [x] 11.1 Create Vanilla CSS design tokens, typography, and palette in `frontend/src/index.css`
+  - [x] 11.2 Implement top Announcement Bar in `frontend/src/components/layout/AnnouncementBar.jsx`
+  - [x] 11.3 Implement Header with brand logo, search bar, and cart preview trigger in `frontend/src/components/layout/Header.jsx`
+  - [x] 11.4 Implement Cart Dropdown preview component in `frontend/src/components/layout/CartDropdown.jsx`
+  - [x] 11.5 Implement Footer with social links in `frontend/src/components/layout/Footer.jsx`
+  - [x] 11.6 Implement floating Chat Widget in `frontend/src/components/chat/ChatWidget.jsx`
+  - [x] 11.7 Implement currency formatter (`NT$X,XXX`) in `frontend/src/utils/currency.js`
+  - [x] 11.8 Implement Axios API client with JWT interceptor in `frontend/src/api/client.js`
+  - [x] 11.9 Implement AuthContext, CartContext, and NotificationContext providers
+- [x] 12. Public Storefront Views (FE)
+  - [x] 12.1 Implement Home page with hero banner and featured grids in `frontend/src/pages/public/HomePage.jsx`
+  - [x] 12.2 Implement Product Catalog page with 2-tier filtering in `frontend/src/pages/public/ProductListPage.jsx`
+  - [x] 12.3 Implement Product Detail page with size chart modal in `frontend/src/pages/public/ProductDetailPage.jsx`
+  - [x] 12.4 Implement Login page in `frontend/src/pages/public/LoginPage.jsx`
+  - [x] 12.5 Implement Register page with 7-11 store query in `frontend/src/pages/public/RegisterPage.jsx`
+  - [x] 12.6 Implement Cart page in `frontend/src/pages/public/CartPage.jsx`
+  - [x] 12.7 Implement Checkout page with dynamic calculation in `frontend/src/pages/public/CheckoutPage.jsx`
+  - [x] 12.8 Implement Terms page in `frontend/src/pages/public/TermsPage.jsx`
+  - [x] 12.9 Implement Forgot Password page in `frontend/src/pages/public/ForgotPasswordPage.jsx`
+- [x] 13. Member Dashboard Views (FE)
+  - [x] 13.1 Implement Member Sidebar in `frontend/src/components/layout/MemberSidebar.jsx`
+  - [x] 13.2 Implement Order History page in `frontend/src/pages/member/OrderHistoryPage.jsx`
+  - [x] 13.3 Implement Member Profile page in `frontend/src/pages/member/ProfilePage.jsx`
+  - [x] 13.4 Implement Wishlist page in `frontend/src/pages/member/WishlistPage.jsx`
+  - [x] 13.5 Implement Customer In-App Chat page in `frontend/src/pages/member/MessagesPage.jsx`
+- [x] 14. Admin Panel Views (FE)
+  - [x] 14.1 Implement Admin Layout and Sidebar in `frontend/src/components/layout/AdminSidebar.jsx`
+  - [x] 14.2 Implement Admin Dashboard in `frontend/src/pages/admin/AdminDashboard.jsx`
+  - [x] 14.3 Implement Admin Products & SKU Management in `frontend/src/pages/admin/AdminProductsPage.jsx`
+  - [x] 14.4 Implement Admin Orders (4 Tabs) in `frontend/src/pages/admin/AdminOrdersPage.jsx`
+  - [x] 14.5 Implement Admin Split-Screen Allocation in `frontend/src/pages/admin/AdminAllocationPage.jsx`
+  - [x] 14.6 Implement Admin Proxy Order in `frontend/src/pages/admin/AdminProxyOrderPage.jsx`
+  - [x] 14.7 Implement Admin Member CRM in `frontend/src/pages/admin/AdminMembersPage.jsx`
+  - [x] 14.8 Implement Admin Template Broadcast in `frontend/src/pages/admin/AdminBroadcastPage.jsx`
+  - [x] 14.9 Implement Admin Finance & Ledgers in `frontend/src/pages/admin/AdminFinancePage.jsx`
+  - [x] 14.10 Implement Admin Reports & Analytics in `frontend/src/pages/admin/AdminReportsPage.jsx`
+- [x] 15. End-to-End System Integration, Verification & Production Build
+  - [x] 15.1 Execute full pytest integration suite
+  - [x] 15.2 Execute `npm run build` production bundling
+  - [x] 15.3 Verify OpenSpec change validity
