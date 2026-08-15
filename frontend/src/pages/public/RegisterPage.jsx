@@ -53,13 +53,13 @@ export function RegisterPage() {
         email: formData.email,
         password: formData.password,
         full_name: formData.full_name,
-        birth_date: formData.birth_date || null,
+        date_of_birth: formData.birth_date || null,
         phone: formData.phone,
-        store_name_711: formData.store_name_711 || null,
-        store_number_711: formData.store_number_711 || null,
-        postal_address: formData.postal_address || null,
+        store_name: formData.store_name_711 || null,
+        store_number: formData.store_number_711 || null,
+        contact_address: formData.postal_address || null,
         marketing_source: formData.marketing_source,
-        agree_terms: formData.agree_terms,
+        agreed_to_rules: formData.agree_terms,
       });
 
       alert("🎉 註冊成功！系統已為您存入 60 點首購免運禮物卡！");

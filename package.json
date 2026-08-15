@@ -1,0 +1,14 @@
+{
+  "name": "heart-kids-wear",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "test:e2e": "npm --prefix frontend run test:e2e",
+    "test:e2e:headed": "npm --prefix frontend run test:e2e:headed",
+    "test:admin": "npm --prefix frontend run test:admin",
+    "test:admin:headed": "npm --prefix frontend run test:admin:headed",
+    "test:admin:ops": "npm --prefix frontend run test:admin:ops",
+    "test:admin:ops:headed": "npm --prefix frontend run test:admin:ops:headed"
+  }
+}
