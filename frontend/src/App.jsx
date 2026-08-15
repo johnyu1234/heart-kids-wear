@@ -67,6 +67,7 @@ export default function App() {
         {/* Member Dashboard */}
         <Route path="/member/orders" element={<OrderHistoryPage />} />
         <Route path="/member/account" element={<ProfilePage />} />
+        <Route path="/member/profile" element={<ProfilePage />} />
         <Route path="/member/wishlist" element={<WishlistPage />} />
         <Route path="/member/messages" element={<MessagesPage />} />
       </Route>

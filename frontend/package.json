@@ -9,6 +9,8 @@
     "preview": "vite preview",
     "test:e2e": "node tests/auth_test.mjs",
     "test:e2e:headed": "node tests/auth_test.mjs --headed",
+    "test:customer": "node tests/customer_operations_test.mjs",
+    "test:customer:headed": "node tests/customer_operations_test.mjs --headed",
     "test:admin": "node tests/admin_auth_test.mjs",
     "test:admin:headed": "node tests/admin_auth_test.mjs --headed",
     "test:admin:ops": "node tests/admin_operations_test.mjs",

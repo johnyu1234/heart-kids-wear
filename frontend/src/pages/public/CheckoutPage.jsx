@@ -47,7 +47,7 @@ export function CheckoutPage() {
     async function calculate() {
       try {
         const res = await api.post("/checkout/calculate", {
-          shipping_method: shippingMethod,
+          shipping_type: shippingMethod === "POST_OFFICE" ? "POST_OFFICE" : "SEVEN_ELEVEN",
           use_store_credits: useCredits,
           points_card_id: selectedPointsCard ? parseInt(selectedPointsCard) : null,
         });
@@ -74,17 +74,17 @@ export function CheckoutPage() {
     setLoading(true);
     try {
       const res = await api.post("/checkout/submit", {
-        shipping_method: calculation?.is_locked_to_post ? "POST_OFFICE" : (shippingMethod === "POST_OFFICE" ? "POST_OFFICE" : "711"),
-        store_name_711: user?.addresses?.[0]?.store_name_711 || "示範門市",
-        store_number_711: user?.addresses?.[0]?.store_number_711 || "123456",
-        postal_address: user?.addresses?.[0]?.postal_address || "台北市大安區信義路二段1號",
+        shipping_type: calculation?.is_locked_to_post ? "POST_OFFICE" : (shippingMethod === "POST_OFFICE" ? "POST_OFFICE" : "SEVEN_ELEVEN"),
+        store_name: user?.addresses?.[0]?.store_name || user?.addresses?.[0]?.store_name_711 || "示範門市",
+        store_number: user?.addresses?.[0]?.store_number || user?.addresses?.[0]?.store_number_711 || "123456",
+        full_address: user?.addresses?.[0]?.contact_address || user?.addresses?.[0]?.postal_address || "台北市大安區信義路二段1號",
         recipient_name: user?.full_name,
         recipient_phone: user?.phone,
         use_store_credits: useCredits,
         points_card_id: selectedPointsCard ? parseInt(selectedPointsCard) : null,
         travel_notes: travelNotes,
-        customer_remarks: customerNotes,
-        agree_terms: true,
+        customer_notes: customerNotes,
+        agreed_to_terms: true,
       });
 
       setOrderResult(res.data);
@@ -109,7 +109,7 @@ export function CheckoutPage() {
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
             <span style={{ color: "var(--text-muted)" }}>{t("checkout.payable_amount")}</span>
             <span style={{ fontWeight: "800", fontSize: "1.2rem", color: "var(--primary-heart)" }}>
-              {formatCurrency(orderResult.payable_amount)}
+              {formatCurrency(orderResult.total || orderResult.final_payable_amount || calculation?.final_payable_amount)}
             </span>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "16px" }}>

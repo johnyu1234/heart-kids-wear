@@ -6,6 +6,8 @@
     "dev": "npm --prefix frontend run dev",
     "test:e2e": "npm --prefix frontend run test:e2e",
     "test:e2e:headed": "npm --prefix frontend run test:e2e:headed",
+    "test:customer": "npm --prefix frontend run test:customer",
+    "test:customer:headed": "npm --prefix frontend run test:customer:headed",
     "test:admin": "npm --prefix frontend run test:admin",
     "test:admin:headed": "npm --prefix frontend run test:admin:headed",
     "test:admin:ops": "npm --prefix frontend run test:admin:ops",

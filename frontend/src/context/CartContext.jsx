@@ -69,6 +69,10 @@ export function CartProvider({ children }) {
     }
   };
 
+  const clearCart = async () => {
+    await fetchCart();
+  };
+
   return (
     <CartContext.Provider
       value={{
@@ -80,6 +84,7 @@ export function CartProvider({ children }) {
         addToCart,
         updateQuantity,
         removeItem,
+        clearCart,
       }}
     >
       {children}

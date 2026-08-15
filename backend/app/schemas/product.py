@@ -69,6 +69,11 @@ class ProductUpdate(BaseModel):
 class ProductArchiveRequest(BaseModel):
     product_id: int
 
+class ProductVariantOut(ProductVariantBase):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    product_id: int
+
 class ProductOut(ProductBase):
     model_config = ConfigDict(from_attributes=True)
     id: int
@@ -76,18 +81,12 @@ class ProductOut(ProductBase):
     is_archived: bool
     created_at: datetime
     images: List[ProductImageOut] = Field(default_factory=list)
+    variants: List[ProductVariantOut] = Field(default_factory=list)
     category: Optional[CategoryOut] = None
-
-class ProductVariantOut(ProductVariantBase):
-    model_config = ConfigDict(from_attributes=True)
-    id: int
-    product_id: int
-    product: Optional[ProductOut] = None
 
 class ProductAdminOut(ProductOut):
     supplier: Optional[str] = None
     cost_gbp: Optional[Decimal] = None
-    variants: List[ProductVariantOut] = Field(default_factory=list)
 
 class GroupCampaignBase(BaseModel):
     display_title: str
