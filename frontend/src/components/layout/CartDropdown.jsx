@@ -14,14 +14,16 @@ export function CartDropdown({ onClose }) {
       position: "absolute",
       top: "100%",
       right: "0",
-      width: "360px",
+      width: "min(340px, calc(100vw - 28px))",
+      maxWidth: "calc(100vw - 24px)",
       backgroundColor: "#FFFFFF",
       borderRadius: "var(--radius-lg)",
       boxShadow: "var(--shadow-lg)",
       border: "1px solid var(--border-light)",
-      padding: "20px",
+      padding: "16px",
       zIndex: 1000,
-      marginTop: "12px"
+      marginTop: "10px",
+      boxSizing: "border-box"
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px", borderBottom: "1px solid var(--border-light)", paddingBottom: "10px" }}>
         <h4 style={{ fontSize: "1rem", fontWeight: "700" }}>{t("cart.title")} ({cart.total_items})</h4>
