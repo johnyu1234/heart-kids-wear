@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../../api/client";
 import { formatCurrency } from "../../utils/currency";
-import { Plus, Archive, RefreshCw, Layers, Upload, Image as ImageIcon, X, CheckCircle2, FileImage, Trash2, Edit3, Loader2 } from "lucide-react";
+import { Plus, Archive, RefreshCw, Layers, Upload, Image as ImageIcon, X, CheckCircle2, FileImage, Trash2, Edit3, Loader2, Tag } from "lucide-react";
 
 export function AdminProductsPage() {
   const [products, setProducts] = useState([]);
@@ -45,8 +45,15 @@ export function AdminProductsPage() {
     description: "",
     size_chart_url: "",
     images: "",
-    is_listed: true
+    is_listed: true,
+    variants: []
   });
+
+  // Helper inputs for adding a single variant
+  const [newSizeLabel, setNewSizeLabel] = useState("");
+  const [newColor, setNewColor] = useState("常規");
+  const [editNewSizeLabel, setEditNewSizeLabel] = useState("");
+  const [editNewColor, setEditNewColor] = useState("常規");
 
   // New Category Form State
   const [newCatNameZh, setNewCatNameZh] = useState("");
@@ -74,6 +81,13 @@ export function AdminProductsPage() {
 
   const openEditModal = (product) => {
     const imageUrls = (product.images || []).map(img => img.image_url).join("\n");
+    const variantsList = (product.variants || []).map(v => ({
+      sku: v.sku || "",
+      size_label: v.size_label || "",
+      color: v.color || "常規",
+      stock_quantity: v.stock_quantity || 0
+    }));
+
     setEditFormData({
       product_id: product.id,
       name_zh: product.name_zh || "",
@@ -85,7 +99,8 @@ export function AdminProductsPage() {
       description: product.description || "",
       size_chart_url: product.size_chart_url || "",
       images: imageUrls,
-      is_listed: product.is_listed !== false
+      is_listed: product.is_listed !== false,
+      variants: variantsList
     });
     setIsEditModalOpen(true);
   };
@@ -159,6 +174,47 @@ export function AdminProductsPage() {
     }
   };
 
+  // Variant management helpers
+  const addVariantToCreate = () => {
+    if (!newSizeLabel.trim()) return;
+    setFormData(prev => ({
+      ...prev,
+      variants: [...prev.variants, { size_label: newSizeLabel.trim(), color: newColor.trim() || "常規", stock_quantity: 0 }]
+    }));
+    setNewSizeLabel("");
+  };
+
+  const removeVariantFromCreate = (idx) => {
+    setFormData(prev => ({
+      ...prev,
+      variants: prev.variants.filter((_, i) => i !== idx)
+    }));
+  };
+
+  const addVariantToEdit = () => {
+    if (!editNewSizeLabel.trim()) return;
+    setEditFormData(prev => ({
+      ...prev,
+      variants: [...prev.variants, { size_label: editNewSizeLabel.trim(), color: editNewColor.trim() || "常規", stock_quantity: 0, sku: "" }]
+    }));
+    setEditNewSizeLabel("");
+  };
+
+  const removeVariantFromEdit = (idx) => {
+    setEditFormData(prev => ({
+      ...prev,
+      variants: prev.variants.filter((_, i) => i !== idx)
+    }));
+  };
+
+  const updateEditVariant = (idx, field, value) => {
+    setEditFormData(prev => {
+      const updated = [...prev.variants];
+      updated[idx] = { ...updated[idx], [field]: value };
+      return { ...prev, variants: updated };
+    });
+  };
+
   const handleArchiveToggle = async (product) => {
     try {
       if (product.is_archived) {
@@ -190,6 +246,11 @@ export function AdminProductsPage() {
   const handleCreateProduct = async (e) => {
     e.preventDefault();
     if (isSubmitting) return;
+
+    if (formData.variants.length === 0) {
+      alert("請至少新增一個尺寸規格！");
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -241,6 +302,11 @@ export function AdminProductsPage() {
     e.preventDefault();
     if (isSubmitting) return;
 
+    if (editFormData.variants.length === 0) {
+      alert("商品必須保留至少一個規格尺寸！");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const imageList = editFormData.images
@@ -259,9 +325,10 @@ export function AdminProductsPage() {
         description: editFormData.description || null,
         size_chart_url: editFormData.size_chart_url || null,
         is_listed: editFormData.is_listed,
-        images: imageList
+        images: imageList,
+        variants: editFormData.variants
       });
-      alert("商品修改儲存成功！");
+      alert("商品與規格 SKU 列表修改儲存成功！");
       setIsEditModalOpen(false);
       await fetchProducts();
     } catch (err) {
@@ -307,7 +374,7 @@ export function AdminProductsPage() {
         <div>
           <h1 className="heading-lg">商品與規格管理 (Catalog & SKUs)</h1>
           <p style={{ color: "var(--text-muted)", fontSize: "0.95rem" }}>
-            管理英國直送商品目錄、獨立尺寸 SKU 貨號、英鎊原價、修改編輯與一鍵重啟開團
+            管理英國直送商品目錄、獨立尺寸 SKU 貨號、英鎊原價、規格增修與一鍵重啟開團
           </p>
         </div>
 
@@ -359,7 +426,7 @@ export function AdminProductsPage() {
                   {formatCurrency(prod.retail_price_twd)}
                 </td>
                 <td style={{ padding: "14px 18px" }}>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "4px", maxWidth: "260px" }}>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "4px", maxWidth: "280px" }}>
                     {prod.variants?.map((v) => (
                       <span key={v.id} style={{ fontSize: "0.72rem", backgroundColor: "var(--bg-subtle)", padding: "2px 6px", borderRadius: "4px", border: "1px solid var(--border-light)" }}>
                         {v.size_label} ({v.sku})
@@ -380,7 +447,7 @@ export function AdminProductsPage() {
                       onClick={() => openEditModal(prod)}
                       className="btn btn-sm btn-secondary"
                       style={{ fontSize: "0.8rem", padding: "6px 12px", display: "flex", alignItems: "center", gap: "4px" }}
-                      title="編輯修改商品"
+                      title="編輯修改商品與規格"
                     >
                       <Edit3 size={14} /> 修改
                     </button>
@@ -415,10 +482,10 @@ export function AdminProductsPage() {
       {/* Edit Product Modal */}
       {isEditModalOpen && (
         <div className="modal-overlay" onClick={() => !isSubmitting && setIsEditModalOpen(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "760px", maxHeight: "90vh", overflowY: "auto" }}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "800px", maxHeight: "90vh", overflowY: "auto" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px", borderBottom: "1px solid var(--border-light)", paddingBottom: "12px" }}>
               <h3 style={{ fontSize: "1.25rem", fontWeight: "800", color: "var(--text-main)", display: "flex", alignItems: "center", gap: "8px" }}>
-                <span>✏️</span> 修改商品資料 (Edit Product)
+                <span>✏️</span> 修改商品與規格貨號 (Edit Product & SKUs)
               </h3>
               <button disabled={isSubmitting} onClick={() => setIsEditModalOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}>
                 <X size={20} />
@@ -497,11 +564,108 @@ export function AdminProductsPage() {
               <div className="form-group">
                 <label className="form-label" style={{ fontWeight: "700" }}>商品文案說明</label>
                 <textarea
-                  rows={3}
+                  rows={2}
                   value={editFormData.description}
                   onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
                   className="form-control"
                 />
+              </div>
+
+              {/* 🏷️ Dynamic Variant & SKU Editor */}
+              <div className="form-group" style={{ backgroundColor: "#F8FAFC", padding: "16px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-light)", marginBottom: "20px" }}>
+                <label className="form-label" style={{ fontWeight: "800", color: "var(--text-main)", display: "flex", alignItems: "center", gap: "6px", marginBottom: "12px" }}>
+                  <Tag size={16} style={{ color: "var(--primary-heart)" }} />
+                  <span>規格與 SKU 列表管理 (可新增、刪除或修改尺寸規格)</span>
+                </label>
+
+                {/* Existing Variants Table */}
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "14px" }}>
+                  {editFormData.variants.map((v, idx) => (
+                    <div key={idx} style={{ display: "flex", gap: "8px", alignItems: "center", backgroundColor: "#FFFFFF", padding: "8px 12px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-light)" }}>
+                      <div style={{ flex: "1" }}>
+                        <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", display: "block" }}>尺寸標籤</span>
+                        <input
+                          type="text"
+                          value={v.size_label}
+                          onChange={(e) => updateEditVariant(idx, "size_label", e.target.value)}
+                          placeholder="例如: 2-3y"
+                          className="form-control"
+                          style={{ padding: "4px 8px", fontSize: "0.85rem" }}
+                        />
+                      </div>
+                      <div style={{ flex: "1" }}>
+                        <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", display: "block" }}>顏色/款式</span>
+                        <input
+                          type="text"
+                          value={v.color}
+                          onChange={(e) => updateEditVariant(idx, "color", e.target.value)}
+                          placeholder="常規"
+                          className="form-control"
+                          style={{ padding: "4px 8px", fontSize: "0.85rem" }}
+                        />
+                      </div>
+                      <div style={{ width: "90px" }}>
+                        <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", display: "block" }}>庫存量</span>
+                        <input
+                          type="number"
+                          value={v.stock_quantity}
+                          onChange={(e) => updateEditVariant(idx, "stock_quantity", parseInt(e.target.value) || 0)}
+                          className="form-control"
+                          style={{ padding: "4px 8px", fontSize: "0.85rem" }}
+                        />
+                      </div>
+                      <div style={{ flex: "1.2" }}>
+                        <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", display: "block" }}>專屬 SKU 貨號</span>
+                        <div style={{ fontSize: "0.8rem", fontFamily: "monospace", color: "var(--primary-heart)", fontWeight: "700", paddingTop: "6px" }}>
+                          {v.sku || "(儲存時自動生成)"}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeVariantFromEdit(idx)}
+                        className="btn btn-sm btn-outline"
+                        style={{ color: "#DC2626", borderColor: "#FCA5A5", padding: "6px 8px", marginTop: "14px" }}
+                        title="移除此規格"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Add New Variant Inline Form */}
+                <div style={{ display: "flex", gap: "8px", alignItems: "flex-end", backgroundColor: "#EEF2F6", padding: "10px 12px", borderRadius: "var(--radius-sm)" }}>
+                  <div style={{ flex: 1 }}>
+                    <span style={{ fontSize: "0.75rem", fontWeight: "700", color: "var(--text-muted)", display: "block", marginBottom: "4px" }}>新增尺寸</span>
+                    <input
+                      type="text"
+                      placeholder="例: 6-7y 或 12-18m"
+                      value={editNewSizeLabel}
+                      onChange={(e) => setEditNewSizeLabel(e.target.value)}
+                      className="form-control"
+                      style={{ padding: "6px 10px", fontSize: "0.85rem" }}
+                    />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <span style={{ fontSize: "0.75rem", fontWeight: "700", color: "var(--text-muted)", display: "block", marginBottom: "4px" }}>顏色/款式</span>
+                    <input
+                      type="text"
+                      placeholder="常規"
+                      value={editNewColor}
+                      onChange={(e) => setEditNewColor(e.target.value)}
+                      className="form-control"
+                      style={{ padding: "6px 10px", fontSize: "0.85rem" }}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={addVariantToEdit}
+                    className="btn btn-sm btn-secondary"
+                    style={{ padding: "7px 14px", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "4px" }}
+                  >
+                    <Plus size={14} /> 新增此規格
+                  </button>
+                </div>
               </div>
 
               {/* Edit Cloudflare R2 Upload Box */}
@@ -614,7 +778,7 @@ export function AdminProductsPage() {
                       <span>正在儲存修改...</span>
                     </>
                   ) : (
-                    <span>儲存修改資料</span>
+                    <span>儲存商品與規格修改</span>
                   )}
                 </button>
               </div>
@@ -626,7 +790,7 @@ export function AdminProductsPage() {
       {/* Import / Create Product Modal */}
       {isImportModalOpen && (
         <div className="modal-overlay" onClick={() => !isSubmitting && setIsImportModalOpen(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "760px", maxHeight: "90vh", overflowY: "auto" }}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "800px", maxHeight: "90vh", overflowY: "auto" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px", borderBottom: "1px solid var(--border-light)", paddingBottom: "12px" }}>
               <h3 style={{ fontSize: "1.25rem", fontWeight: "800", color: "var(--text-main)", display: "flex", alignItems: "center", gap: "8px" }}>
                 <span>✨</span> 新增商品 / 預購開團
@@ -696,6 +860,48 @@ export function AdminProductsPage() {
                     onChange={(e) => setFormData({ ...formData, retail_price_twd: e.target.value })}
                     className="form-control"
                   />
+                </div>
+              </div>
+
+              {/* Dynamic Variant Manager in Create Modal */}
+              <div className="form-group" style={{ backgroundColor: "#F8FAFC", padding: "16px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-light)", marginBottom: "20px" }}>
+                <label className="form-label" style={{ fontWeight: "800", color: "var(--text-main)", display: "flex", alignItems: "center", gap: "6px", marginBottom: "10px" }}>
+                  <Tag size={16} style={{ color: "var(--primary-heart)" }} />
+                  <span>尺寸規格設定 (系統將自動生成專屬 SKU)</span>
+                </label>
+
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "12px" }}>
+                  {formData.variants.map((v, idx) => (
+                    <div key={idx} style={{ display: "flex", alignItems: "center", gap: "6px", backgroundColor: "#FFFFFF", padding: "6px 12px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-light)", fontSize: "0.85rem", fontWeight: "600" }}>
+                      <span>{v.size_label}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeVariantFromCreate(idx)}
+                        style={{ background: "none", border: "none", color: "#94A3B8", cursor: "pointer", padding: "0 2px" }}
+                      >
+                        <X size={13} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                  <input
+                    type="text"
+                    placeholder="新增尺寸 (如 6-7y, 12-18m)"
+                    value={newSizeLabel}
+                    onChange={(e) => setNewSizeLabel(e.target.value)}
+                    className="form-control"
+                    style={{ maxWidth: "200px", padding: "6px 10px", fontSize: "0.85rem" }}
+                  />
+                  <button
+                    type="button"
+                    onClick={addVariantToCreate}
+                    className="btn btn-sm btn-secondary"
+                    style={{ padding: "6px 12px", fontSize: "0.85rem" }}
+                  >
+                    <Plus size={14} /> 加入規格
+                  </button>
                 </div>
               </div>
 
@@ -793,17 +999,6 @@ export function AdminProductsPage() {
                   className="form-control"
                   style={{ fontSize: "0.82rem", fontFamily: "monospace" }}
                 />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label" style={{ fontWeight: "700" }}>尺寸與規格設定 (系統將自動生成專屬 SKU)</label>
-                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                  {formData.variants.map((v, i) => (
-                    <div key={i} style={{ backgroundColor: "var(--bg-subtle)", padding: "6px 12px", borderRadius: "var(--radius-sm)", fontSize: "0.85rem", fontWeight: "600" }}>
-                      {v.size_label}
-                    </div>
-                  ))}
-                </div>
               </div>
 
               <div style={{ display: "flex", gap: "12px", marginTop: "24px" }}>

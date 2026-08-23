@@ -66,6 +66,7 @@ class ProductUpdate(BaseModel):
     size_chart_url: Optional[str] = None
     is_listed: Optional[bool] = None
     images: Optional[List[str]] = None
+    variants: Optional[List[ProductVariantCreate]] = None
 
 class ProductArchiveRequest(BaseModel):
     product_id: int

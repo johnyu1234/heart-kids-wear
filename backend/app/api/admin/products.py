@@ -95,7 +95,7 @@ def update_product(
     if not product:
         raise HTTPException(status_code=404, detail="找不到商品")
 
-    update_data = payload.dict(exclude_unset=True, exclude={"product_id", "images"})
+    update_data = payload.dict(exclude_unset=True, exclude={"product_id", "images", "variants"})
     for key, value in update_data.items():
         setattr(product, key, value)
 
@@ -108,6 +108,21 @@ def update_product(
                 image_url=img_url,
                 sort_order=idx + 1,
                 is_primary=(idx == 0)
+            ))
+
+    # If variants were provided, update variants and generate SKUs if needed
+    if payload.variants is not None:
+        db.query(ProductVariant).filter(ProductVariant.product_id == product.id).delete()
+        for v in payload.variants:
+            sku = v.sku or generate_sku(product.id, v.size_label, v.color)
+            db.add(ProductVariant(
+                product_id=product.id,
+                sku=sku,
+                size_label=v.size_label,
+                color=v.color,
+                style=v.style,
+                stock_quantity=v.stock_quantity,
+                is_available=True
             ))
 
     db.commit()
