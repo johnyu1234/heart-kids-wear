@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../../api/client";
 import { formatCurrency } from "../../utils/currency";
-import { Plus, Archive, RefreshCw, Edit, Tag, Eye, EyeOff, Layers, Upload, Image as ImageIcon } from "lucide-react";
+import { Plus, Archive, RefreshCw, Layers, Upload, Image as ImageIcon, X, CheckCircle2, FileImage } from "lucide-react";
 
 export function AdminProductsPage() {
   const [products, setProducts] = useState([]);
@@ -56,39 +56,50 @@ export function AdminProductsPage() {
   }, []);
 
   const handleFileUpload = async (e, fieldType = "images") => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-    const uploadFormData = new FormData();
-    uploadFormData.append("file", file);
+    if (fieldType === "images") setUploadingImage(true);
+    else setUploadingSizeChart(true);
 
     try {
-      if (fieldType === "images") setUploadingImage(true);
-      else setUploadingSizeChart(true);
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const uploadFormData = new FormData();
+        uploadFormData.append("file", file);
 
-      const res = await api.post("/admin/products/upload-image", uploadFormData, {
-        headers: { "Content-Type": "multipart/form-data" }
-      });
+        const res = await api.post("/admin/products/upload-image", uploadFormData, {
+          headers: { "Content-Type": "multipart/form-data" }
+        });
 
-      const cdnUrl = res.data.url;
-      if (fieldType === "images") {
-        setFormData(prev => ({
-          ...prev,
-          images: prev.images ? `${prev.images}\n${cdnUrl}` : cdnUrl
-        }));
-      } else {
-        setFormData(prev => ({
-          ...prev,
-          size_chart_url: cdnUrl
-        }));
+        const cdnUrl = res.data.url;
+        if (fieldType === "images") {
+          setFormData(prev => ({
+            ...prev,
+            images: prev.images ? `${prev.images}\n${cdnUrl}` : cdnUrl
+          }));
+        } else {
+          setFormData(prev => ({
+            ...prev,
+            size_chart_url: cdnUrl
+          }));
+        }
       }
     } catch (err) {
-      alert("圖片上傳至 Cloudflare R2 失敗，請稍後再試。");
+      alert("圖片上傳至 Cloudflare R2 失敗，請檢查網路或 Render 設定。");
     } finally {
       setUploadingImage(false);
       setUploadingSizeChart(false);
       e.target.value = "";
     }
+  };
+
+  const removeImageUrl = (urlToRemove) => {
+    const list = formData.images
+      .split("\n")
+      .map(u => u.trim())
+      .filter(u => u.length > 0 && u !== urlToRemove);
+    setFormData({ ...formData, images: list.join("\n") });
   };
 
   const handleArchiveToggle = async (product) => {
@@ -123,11 +134,28 @@ export function AdminProductsPage() {
         retail_price_twd: parseFloat(formData.retail_price_twd),
         description: formData.description || null,
         size_chart_url: formData.size_chart_url || null,
-        images: imageList.length > 0 ? imageList : ["https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=800"],
+        images: imageList.length > 0 ? imageList : ["https://pub-70b8f69ff37f46a4999b9caaabaa9281.r2.dev/products/tee_boy_classic.jpg"],
         variants: formData.variants
       });
       alert("商品建立成功，已自動生成各尺寸專屬貨號 SKU！");
       setIsImportModalOpen(false);
+      setFormData({
+        name_zh: "",
+        name_en: "",
+        category_id: "",
+        supplier: "Next UK",
+        cost_gbp: "",
+        retail_price_twd: "",
+        description: "",
+        size_chart_url: "",
+        images: "",
+        variants: [
+          { size_label: "2-3y", color: "常規", stock_quantity: 0 },
+          { size_label: "3-4y", color: "常規", stock_quantity: 0 },
+          { size_label: "4-5y", color: "常規", stock_quantity: 0 },
+          { size_label: "5-6y", color: "常規", stock_quantity: 0 },
+        ]
+      });
       await fetchProducts();
     } catch (err) {
       alert(err.response?.data?.detail || "新增商品失敗");
@@ -152,6 +180,11 @@ export function AdminProductsPage() {
       alert("新增分類失敗");
     }
   };
+
+  const imageListPreviews = formData.images
+    .split("\n")
+    .map(u => u.trim())
+    .filter(u => u.length > 0);
 
   return (
     <div>
@@ -193,9 +226,9 @@ export function AdminProductsPage() {
               <tr key={prod.id} style={{ borderBottom: "1px solid var(--border-light)" }}>
                 <td style={{ padding: "14px 18px", display: "flex", alignItems: "center", gap: "12px" }}>
                   <img
-                    src={prod.images?.[0]?.image_url || "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=100"}
+                    src={prod.images?.[0]?.image_url || "https://pub-70b8f69ff37f46a4999b9caaabaa9281.r2.dev/products/tee_boy_classic.jpg"}
                     alt={prod.name_zh}
-                    style={{ width: "50px", height: "50px", objectFit: "cover", borderRadius: "var(--radius-sm)" }}
+                    style={{ width: "52px", height: "52px", objectFit: "cover", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-light)" }}
                   />
                   <div>
                     <div style={{ fontWeight: "700", color: "var(--text-main)" }}>{prod.name_zh}</div>
@@ -249,27 +282,34 @@ export function AdminProductsPage() {
       {/* Import / Create Product Modal */}
       {isImportModalOpen && (
         <div className="modal-overlay" onClick={() => setIsImportModalOpen(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "700px" }}>
-            <h3 style={{ fontSize: "1.2rem", fontWeight: "700", marginBottom: "16px" }}>新增英國商品 / 開團匯入</h3>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "760px", maxHeight: "90vh", overflowY: "auto" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px", borderBottom: "1px solid var(--border-light)", paddingBottom: "12px" }}>
+              <h3 style={{ fontSize: "1.25rem", fontWeight: "800", color: "var(--text-main)", display: "flex", alignItems: "center", gap: "8px" }}>
+                <span>✨</span> 新增商品 / 預購開團
+              </h3>
+              <button onClick={() => setIsImportModalOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}>
+                <X size={20} />
+              </button>
+            </div>
             
             <form onSubmit={handleCreateProduct}>
               <div className="grid-2">
                 <div className="form-group">
-                  <label className="form-label">商品中文名稱 *</label>
+                  <label className="form-label" style={{ fontWeight: "700" }}>商品中文名稱 *</label>
                   <input
                     type="text"
                     required
-                    placeholder="例：英國品牌經典純棉童趣短袖上衣"
+                    placeholder="例如：英倫恐龍印花純棉連身衣"
                     value={formData.name_zh}
                     onChange={(e) => setFormData({ ...formData, name_zh: e.target.value })}
                     className="form-control"
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">商品英文名稱</label>
+                  <label className="form-label" style={{ fontWeight: "700" }}>英文名稱 (選填)</label>
                   <input
                     type="text"
-                    placeholder="例：British Classic Cotton Graphic Tee"
+                    placeholder="Dino Cotton Sleepsuit"
                     value={formData.name_en}
                     onChange={(e) => setFormData({ ...formData, name_en: e.target.value })}
                     className="form-control"
@@ -279,7 +319,7 @@ export function AdminProductsPage() {
 
               <div className="grid-3">
                 <div className="form-group">
-                  <label className="form-label">分類</label>
+                  <label className="form-label" style={{ fontWeight: "700" }}>分類</label>
                   <select
                     value={formData.category_id}
                     onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
@@ -292,7 +332,7 @@ export function AdminProductsPage() {
                   </select>
                 </div>
                 <div className="form-group">
-                  <label className="form-label">原廠成本 (GBP £)</label>
+                  <label className="form-label" style={{ fontWeight: "700" }}>原廠成本 (GBP £)</label>
                   <input
                     type="number"
                     step="0.01"
@@ -303,7 +343,7 @@ export function AdminProductsPage() {
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">預購售價 (NT$) *</label>
+                  <label className="form-label" style={{ fontWeight: "700" }}>預購售價 (NT$) *</label>
                   <input
                     type="number"
                     required
@@ -315,42 +355,83 @@ export function AdminProductsPage() {
                 </div>
               </div>
 
-              {/* Product Images with Cloudflare R2 Upload */}
-              <div className="form-group">
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                  <label className="form-label" style={{ margin: 0 }}>商品圖片網址 (Cloudflare R2 / CDN)</label>
+              {/* Enhanced Cloudflare R2 Upload Box */}
+              <div className="form-group" style={{ backgroundColor: "#FAF8F5", padding: "16px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-light)", marginBottom: "20px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+                  <label className="form-label" style={{ margin: 0, fontWeight: "800", color: "var(--text-main)", display: "flex", alignItems: "center", gap: "6px" }}>
+                    <FileImage size={17} style={{ color: "var(--primary-heart)" }} />
+                    <span>商品主圖與照片 (Cloudflare R2 直傳)</span>
+                  </label>
                   <label
-                    className="btn btn-sm btn-outline"
-                    style={{ cursor: "pointer", fontSize: "0.78rem", padding: "4px 10px", borderRadius: "var(--radius-full)", display: "flex", alignItems: "center", gap: "4px" }}
+                    className="btn btn-sm btn-primary"
+                    style={{ cursor: "pointer", fontSize: "0.82rem", padding: "6px 14px", borderRadius: "var(--radius-full)", display: "flex", alignItems: "center", gap: "6px" }}
                   >
-                    <Upload size={13} /> {uploadingImage ? "上傳中..." : "上傳本機圖至 Cloudflare"}
+                    <Upload size={14} /> {uploadingImage ? "正在上傳至 Cloudflare..." : "📤 上傳本機圖檔至 Cloudflare"}
                     <input
                       type="file"
                       accept="image/*"
+                      multiple
                       style={{ display: "none" }}
                       disabled={uploadingImage}
                       onChange={(e) => handleFileUpload(e, "images")}
                     />
                   </label>
                 </div>
+
+                {/* Uploaded Thumbnail Gallery */}
+                {imageListPreviews.length > 0 && (
+                  <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "12px" }}>
+                    {imageListPreviews.map((url, idx) => (
+                      <div key={idx} style={{ position: "relative", width: "70px", height: "70px", borderRadius: "var(--radius-sm)", overflow: "hidden", border: "2px solid var(--primary-heart)" }}>
+                        <img src={url} alt={`upload-${idx}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        <button
+                          type="button"
+                          onClick={() => removeImageUrl(url)}
+                          style={{
+                            position: "absolute",
+                            top: "2px",
+                            right: "2px",
+                            background: "rgba(0,0,0,0.6)",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: "50%",
+                            width: "18px",
+                            height: "18px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            cursor: "pointer"
+                          }}
+                          title="移除此圖片"
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 <textarea
                   rows={2}
-                  placeholder="https://...jpg (可直接貼上網址，或點右上角上傳至 Cloudflare R2)"
+                  placeholder="https://pub-70b8f69ff37f46a4999b9caaabaa9281.r2.dev/... (可點擊右上角直接上傳本機圖檔，或手動貼上網址)"
                   value={formData.images}
                   onChange={(e) => setFormData({ ...formData, images: e.target.value })}
                   className="form-control"
+                  style={{ fontSize: "0.82rem", fontFamily: "monospace" }}
                 />
               </div>
 
-              {/* Size Chart Image with Cloudflare R2 Upload */}
-              <div className="form-group">
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                  <label className="form-label" style={{ margin: 0 }}>尺寸對照表圖檔 (Size Chart)</label>
+              {/* Size Chart Cloudflare R2 Upload Box */}
+              <div className="form-group" style={{ backgroundColor: "#FAF8F5", padding: "16px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-light)", marginBottom: "20px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                  <label className="form-label" style={{ margin: 0, fontWeight: "800", color: "var(--text-main)" }}>
+                    尺寸對照表圖檔 (Size Chart)
+                  </label>
                   <label
                     className="btn btn-sm btn-outline"
-                    style={{ cursor: "pointer", fontSize: "0.78rem", padding: "4px 10px", borderRadius: "var(--radius-full)", display: "flex", alignItems: "center", gap: "4px" }}
+                    style={{ cursor: "pointer", fontSize: "0.82rem", padding: "5px 12px", borderRadius: "var(--radius-full)", display: "flex", alignItems: "center", gap: "6px" }}
                   >
-                    <Upload size={13} /> {uploadingSizeChart ? "上傳中..." : "上傳尺寸表至 Cloudflare"}
+                    <Upload size={13} /> {uploadingSizeChart ? "上傳中..." : "📤 上傳尺寸表至 Cloudflare"}
                     <input
                       type="file"
                       accept="image/*"
@@ -362,15 +443,16 @@ export function AdminProductsPage() {
                 </div>
                 <input
                   type="text"
-                  placeholder="https://...jpg (尺寸表圖片網址)"
+                  placeholder="https://pub-.../size_chart.jpg (尺寸表圖片網址)"
                   value={formData.size_chart_url}
                   onChange={(e) => setFormData({ ...formData, size_chart_url: e.target.value })}
                   className="form-control"
+                  style={{ fontSize: "0.82rem", fontFamily: "monospace" }}
                 />
               </div>
 
               <div className="form-group">
-                <label className="form-label">尺寸與規格設定 (系統將自動生成專屬 SKU)</label>
+                <label className="form-label" style={{ fontWeight: "700" }}>尺寸與規格設定 (系統將自動生成專屬 SKU)</label>
                 <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                   {formData.variants.map((v, i) => (
                     <div key={i} style={{ backgroundColor: "var(--bg-subtle)", padding: "6px 12px", borderRadius: "var(--radius-sm)", fontSize: "0.85rem", fontWeight: "600" }}>
@@ -380,11 +462,11 @@ export function AdminProductsPage() {
                 </div>
               </div>
 
-              <div style={{ display: "flex", gap: "10px", marginTop: "24px" }}>
+              <div style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
                 <button type="button" onClick={() => setIsImportModalOpen(false)} className="btn btn-secondary" style={{ flex: 1 }}>
                   取消
                 </button>
-                <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>
+                <button type="submit" className="btn btn-primary" style={{ flex: 1, fontWeight: "800" }}>
                   確認建立商品與 SKU
                 </button>
               </div>
