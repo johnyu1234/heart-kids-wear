@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../../api/client";
 import { formatCurrency } from "../../utils/currency";
-import { Plus, Archive, RefreshCw, Layers, Upload, Image as ImageIcon, X, CheckCircle2, FileImage } from "lucide-react";
+import { Plus, Archive, RefreshCw, Layers, Upload, Image as ImageIcon, X, CheckCircle2, FileImage, Trash2, Loader2 } from "lucide-react";
 
 export function AdminProductsPage() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -117,8 +118,24 @@ export function AdminProductsPage() {
     }
   };
 
+  const handleDeleteProduct = async (product) => {
+    if (!window.confirm(`確定要永久刪除商品「${product.name_zh}」嗎？此動作將連同其規格貨號一併刪除。`)) {
+      return;
+    }
+    try {
+      await api.post("/admin/products/delete", { product_id: product.id });
+      alert(`商品「${product.name_zh}」已成功刪除！`);
+      await fetchProducts();
+    } catch (err) {
+      alert(err.response?.data?.detail || "刪除商品失敗");
+    }
+  };
+
   const handleCreateProduct = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return; // Prevent duplicate clicks / double entry
+
+    setIsSubmitting(true);
     try {
       const imageList = formData.images
         .split("\n")
@@ -159,6 +176,8 @@ export function AdminProductsPage() {
       await fetchProducts();
     } catch (err) {
       alert(err.response?.data?.detail || "新增商品失敗");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -261,17 +280,28 @@ export function AdminProductsPage() {
                   )}
                 </td>
                 <td style={{ padding: "14px 18px", textAlign: "right" }}>
-                  <button
-                    onClick={() => handleArchiveToggle(prod)}
-                    className={`btn btn-sm ${prod.is_archived ? "btn-outline" : "btn-secondary"}`}
-                    style={{ fontSize: "0.8rem", padding: "6px 12px" }}
-                  >
-                    {prod.is_archived ? (
-                      <><RefreshCw size={14} /> 一鍵重啟</>
-                    ) : (
-                      <><Archive size={14} /> 封存歸檔</>
-                    )}
-                  </button>
+                  <div style={{ display: "flex", gap: "6px", justifyContent: "flex-end" }}>
+                    <button
+                      onClick={() => handleArchiveToggle(prod)}
+                      className={`btn btn-sm ${prod.is_archived ? "btn-outline" : "btn-secondary"}`}
+                      style={{ fontSize: "0.8rem", padding: "6px 12px" }}
+                      title={prod.is_archived ? "一鍵重啟" : "封存歸檔"}
+                    >
+                      {prod.is_archived ? (
+                        <><RefreshCw size={14} /> 一鍵重啟</>
+                      ) : (
+                        <><Archive size={14} /> 封存歸檔</>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => handleDeleteProduct(prod)}
+                      className="btn btn-sm btn-outline"
+                      style={{ fontSize: "0.8rem", padding: "6px 10px", color: "#DC2626", borderColor: "#FCA5A5" }}
+                      title="永久刪除此商品"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -281,13 +311,13 @@ export function AdminProductsPage() {
 
       {/* Import / Create Product Modal */}
       {isImportModalOpen && (
-        <div className="modal-overlay" onClick={() => setIsImportModalOpen(false)}>
+        <div className="modal-overlay" onClick={() => !isSubmitting && setIsImportModalOpen(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "760px", maxHeight: "90vh", overflowY: "auto" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px", borderBottom: "1px solid var(--border-light)", paddingBottom: "12px" }}>
               <h3 style={{ fontSize: "1.25rem", fontWeight: "800", color: "var(--text-main)", display: "flex", alignItems: "center", gap: "8px" }}>
                 <span>✨</span> 新增商品 / 預購開團
               </h3>
-              <button onClick={() => setIsImportModalOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}>
+              <button disabled={isSubmitting} onClick={() => setIsImportModalOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}>
                 <X size={20} />
               </button>
             </div>
@@ -372,7 +402,7 @@ export function AdminProductsPage() {
                       accept="image/*"
                       multiple
                       style={{ display: "none" }}
-                      disabled={uploadingImage}
+                      disabled={uploadingImage || isSubmitting}
                       onChange={(e) => handleFileUpload(e, "images")}
                     />
                   </label>
@@ -436,7 +466,7 @@ export function AdminProductsPage() {
                       type="file"
                       accept="image/*"
                       style={{ display: "none" }}
-                      disabled={uploadingSizeChart}
+                      disabled={uploadingSizeChart || isSubmitting}
                       onChange={(e) => handleFileUpload(e, "size_chart")}
                     />
                   </label>
@@ -463,11 +493,23 @@ export function AdminProductsPage() {
               </div>
 
               <div style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
-                <button type="button" onClick={() => setIsImportModalOpen(false)} className="btn btn-secondary" style={{ flex: 1 }}>
+                <button type="button" disabled={isSubmitting} onClick={() => setIsImportModalOpen(false)} className="btn btn-secondary" style={{ flex: 1 }}>
                   取消
                 </button>
-                <button type="submit" className="btn btn-primary" style={{ flex: 1, fontWeight: "800" }}>
-                  確認建立商品與 SKU
+                <button
+                  type="submit"
+                  disabled={isSubmitting || uploadingImage || uploadingSizeChart}
+                  className="btn btn-primary"
+                  style={{ flex: 1, fontWeight: "800", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      <span>正在建立商品與 SKU...</span>
+                    </>
+                  ) : (
+                    <span>確認建立商品與 SKU</span>
+                  )}
                 </button>
               </div>
             </form>

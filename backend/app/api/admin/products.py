@@ -132,6 +132,23 @@ def relaunch_product(
     db.commit()
     return {"success": True, "message": "商品已一鍵重啟上架"}
 
+@router.post("/delete")
+def delete_product(
+    payload: ProductArchiveRequest,
+    admin = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    """Delete a product and its associated variants and images."""
+    product = db.query(Product).filter(Product.id == payload.product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="找不到商品")
+
+    db.query(ProductImage).filter(ProductImage.product_id == product.id).delete()
+    db.query(ProductVariant).filter(ProductVariant.product_id == product.id).delete()
+    db.delete(product)
+    db.commit()
+    return {"success": True, "message": "商品已成功刪除"}
+
 # Category & Campaign Admin
 @router.post("/categories/create", response_model=CategoryOut)
 def create_category(
