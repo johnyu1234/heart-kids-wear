@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: heart-kids-wear-backend
+    runtime: python
+    region: singapore
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: python -m uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: PYTHONPATH
+        value: .
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "1440"
+      - key: DATABASE_URL
+        value: sqlite:///./backend/data/heart_kids_wear.db
+      - key: PAYMENT_GATEWAY_ENABLED
+        value: "false"
+      - key: STORE_CREDIT_AUTO_REFUND
+        value: "true"
+      - key: OVERDUE_TRACKING_ENABLED
+        value: "true"
