@@ -16,23 +16,28 @@ if db_url.startswith("sqlite"):
     if dir_name:
         os.makedirs(dir_name, exist_ok=True)
     connect_args = {"check_same_thread": False}
-else:
-    connect_args = {}
-
-engine = create_engine(
-    db_url,
-    connect_args=connect_args,
-    echo=False
-)
-
-# Enable SQLite foreign keys & WAL mode
-if db_url.startswith("sqlite"):
+    engine = create_engine(
+        db_url,
+        connect_args=connect_args,
+        echo=False
+    )
+    
     @event.listens_for(engine, "connect")
     def set_sqlite_pragma(dbapi_connection, connection_record):
         cursor = dbapi_connection.cursor()
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.execute("PRAGMA journal_mode=WAL")
         cursor.close()
+else:
+    # High-performance connection pooling for Cloud PostgreSQL (Supabase / Neon)
+    engine = create_engine(
+        db_url,
+        pool_size=10,
+        max_overflow=20,
+        pool_recycle=300,
+        pool_pre_ping=True,
+        echo=False
+    )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
