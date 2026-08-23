@@ -14,7 +14,11 @@
     "test:admin": "node tests/admin_auth_test.mjs",
     "test:admin:headed": "node tests/admin_auth_test.mjs --headed",
     "test:admin:ops": "node tests/admin_operations_test.mjs",
-    "test:admin:ops:headed": "node tests/admin_operations_test.mjs --headed"
+    "test:admin:ops:headed": "node tests/admin_operations_test.mjs --headed",
+    "test:rules": "node tests/cart_rules_test.mjs",
+    "test:rules:headed": "node tests/cart_rules_test.mjs --headed",
+    "test:i18n": "node tests/i18n_test.mjs",
+    "test:i18n:headed": "node tests/i18n_test.mjs --headed"
   },
   "dependencies": {
     "axios": "^1.6.8",

@@ -9,6 +9,7 @@
     "build": "npm --prefix frontend run build",
     "dev": "npm --prefix frontend run dev",
     "ngrok": "powershell -ExecutionPolicy Bypass -File ./start_ngrok.ps1",
+    "test:all": "npm --prefix frontend run test:e2e && npm --prefix frontend run test:admin && npm --prefix frontend run test:customer && npm --prefix frontend run test:admin:ops && npm --prefix frontend run test:rules && npm --prefix frontend run test:i18n",
     "test:e2e": "npm --prefix frontend run test:e2e",
     "test:e2e:headed": "npm --prefix frontend run test:e2e:headed",
     "test:customer": "npm --prefix frontend run test:customer",
@@ -16,6 +17,10 @@
     "test:admin": "npm --prefix frontend run test:admin",
     "test:admin:headed": "npm --prefix frontend run test:admin:headed",
     "test:admin:ops": "npm --prefix frontend run test:admin:ops",
-    "test:admin:ops:headed": "npm --prefix frontend run test:admin:ops:headed"
+    "test:admin:ops:headed": "npm --prefix frontend run test:admin:ops:headed",
+    "test:rules": "npm --prefix frontend run test:rules",
+    "test:rules:headed": "npm --prefix frontend run test:rules:headed",
+    "test:i18n": "npm --prefix frontend run test:i18n",
+    "test:i18n:headed": "npm --prefix frontend run test:i18n:headed"
   }
 }
