@@ -65,24 +65,27 @@ class ProductUpdate(BaseModel):
     description: Optional[str] = None
     size_chart_url: Optional[str] = None
     is_listed: Optional[bool] = None
+    images: Optional[List[str]] = None
 
 class ProductArchiveRequest(BaseModel):
     product_id: int
 
-class ProductVariantOut(ProductVariantBase):
+class ProductOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
-    product_id: int
-
-class ProductOut(ProductBase):
-    model_config = ConfigDict(from_attributes=True)
-    id: int
+    name_zh: str
+    name_en: Optional[str] = None
+    category_id: Optional[int] = None
+    campaign_id: Optional[int] = None
+    retail_price_twd: Decimal
+    description: Optional[str] = None
+    size_chart_url: Optional[str] = None
     is_listed: bool
     is_archived: bool
-    created_at: datetime
-    images: List[ProductImageOut] = Field(default_factory=list)
-    variants: List[ProductVariantOut] = Field(default_factory=list)
     category: Optional[CategoryOut] = None
+    variants: List[ProductVariantBase] = []
+    images: List[ProductImageOut] = []
+    created_at: datetime
 
 class ProductAdminOut(ProductOut):
     supplier: Optional[str] = None
@@ -92,7 +95,6 @@ class GroupCampaignBase(BaseModel):
     display_title: str
     promotional_copy: Optional[str] = None
     scheduled_publish_at: Optional[datetime] = None
-    scheduled_delist_at: Optional[datetime] = None
     is_active: bool = True
 
 class GroupCampaignCreate(GroupCampaignBase):
@@ -102,17 +104,4 @@ class GroupCampaignOut(GroupCampaignBase):
     model_config = ConfigDict(from_attributes=True)
     id: int
     created_at: datetime
-    products: List[ProductOut] = Field(default_factory=list)
-
-class WishlistAddRequest(BaseModel):
-    product_id: int
-
-class WishlistRemoveRequest(BaseModel):
-    product_id: int
-
-class WishlistOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-    id: int
-    product_id: int
-    added_at: datetime
-    product: ProductOut
+    products: List[ProductOut] = []

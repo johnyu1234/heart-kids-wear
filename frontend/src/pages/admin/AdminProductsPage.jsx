@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../../api/client";
 import { formatCurrency } from "../../utils/currency";
-import { Plus, Archive, RefreshCw, Layers, Upload, Image as ImageIcon, X, CheckCircle2, FileImage, Trash2, Loader2 } from "lucide-react";
+import { Plus, Archive, RefreshCw, Layers, Upload, Image as ImageIcon, X, CheckCircle2, FileImage, Trash2, Edit3, Loader2 } from "lucide-react";
 
 export function AdminProductsPage() {
   const [products, setProducts] = useState([]);
@@ -9,6 +9,7 @@ export function AdminProductsPage() {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadingSizeChart, setUploadingSizeChart] = useState(false);
@@ -30,6 +31,21 @@ export function AdminProductsPage() {
       { size_label: "4-5y", color: "常規", stock_quantity: 0 },
       { size_label: "5-6y", color: "常規", stock_quantity: 0 },
     ]
+  });
+
+  // Edit Product Form State
+  const [editFormData, setEditFormData] = useState({
+    product_id: null,
+    name_zh: "",
+    name_en: "",
+    category_id: "",
+    supplier: "",
+    cost_gbp: "",
+    retail_price_twd: "",
+    description: "",
+    size_chart_url: "",
+    images: "",
+    is_listed: true
   });
 
   // New Category Form State
@@ -56,7 +72,25 @@ export function AdminProductsPage() {
     fetchProducts();
   }, []);
 
-  const handleFileUpload = async (e, fieldType = "images") => {
+  const openEditModal = (product) => {
+    const imageUrls = (product.images || []).map(img => img.image_url).join("\n");
+    setEditFormData({
+      product_id: product.id,
+      name_zh: product.name_zh || "",
+      name_en: product.name_en || "",
+      category_id: product.category_id || "",
+      supplier: product.supplier || "",
+      cost_gbp: product.cost_gbp || "",
+      retail_price_twd: product.retail_price_twd || "",
+      description: product.description || "",
+      size_chart_url: product.size_chart_url || "",
+      images: imageUrls,
+      is_listed: product.is_listed !== false
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleFileUpload = async (e, fieldType = "images", isEditMode = false) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
@@ -74,16 +108,30 @@ export function AdminProductsPage() {
         });
 
         const cdnUrl = res.data.url;
-        if (fieldType === "images") {
-          setFormData(prev => ({
-            ...prev,
-            images: prev.images ? `${prev.images}\n${cdnUrl}` : cdnUrl
-          }));
+        if (isEditMode) {
+          if (fieldType === "images") {
+            setEditFormData(prev => ({
+              ...prev,
+              images: prev.images ? `${prev.images}\n${cdnUrl}` : cdnUrl
+            }));
+          } else {
+            setEditFormData(prev => ({
+              ...prev,
+              size_chart_url: cdnUrl
+            }));
+          }
         } else {
-          setFormData(prev => ({
-            ...prev,
-            size_chart_url: cdnUrl
-          }));
+          if (fieldType === "images") {
+            setFormData(prev => ({
+              ...prev,
+              images: prev.images ? `${prev.images}\n${cdnUrl}` : cdnUrl
+            }));
+          } else {
+            setFormData(prev => ({
+              ...prev,
+              size_chart_url: cdnUrl
+            }));
+          }
         }
       }
     } catch (err) {
@@ -95,12 +143,20 @@ export function AdminProductsPage() {
     }
   };
 
-  const removeImageUrl = (urlToRemove) => {
-    const list = formData.images
-      .split("\n")
-      .map(u => u.trim())
-      .filter(u => u.length > 0 && u !== urlToRemove);
-    setFormData({ ...formData, images: list.join("\n") });
+  const removeImageUrl = (urlToRemove, isEditMode = false) => {
+    if (isEditMode) {
+      const list = editFormData.images
+        .split("\n")
+        .map(u => u.trim())
+        .filter(u => u.length > 0 && u !== urlToRemove);
+      setEditFormData({ ...editFormData, images: list.join("\n") });
+    } else {
+      const list = formData.images
+        .split("\n")
+        .map(u => u.trim())
+        .filter(u => u.length > 0 && u !== urlToRemove);
+      setFormData({ ...formData, images: list.join("\n") });
+    }
   };
 
   const handleArchiveToggle = async (product) => {
@@ -133,7 +189,7 @@ export function AdminProductsPage() {
 
   const handleCreateProduct = async (e) => {
     e.preventDefault();
-    if (isSubmitting) return; // Prevent duplicate clicks / double entry
+    if (isSubmitting) return;
 
     setIsSubmitting(true);
     try {
@@ -181,6 +237,40 @@ export function AdminProductsPage() {
     }
   };
 
+  const handleUpdateProduct = async (e) => {
+    e.preventDefault();
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+    try {
+      const imageList = editFormData.images
+        .split("\n")
+        .map((url) => url.trim())
+        .filter((url) => url.length > 0);
+
+      await api.post("/admin/products/update", {
+        product_id: editFormData.product_id,
+        name_zh: editFormData.name_zh,
+        name_en: editFormData.name_en || null,
+        category_id: editFormData.category_id ? parseInt(editFormData.category_id) : null,
+        supplier: editFormData.supplier || null,
+        cost_gbp: editFormData.cost_gbp ? parseFloat(editFormData.cost_gbp) : null,
+        retail_price_twd: parseFloat(editFormData.retail_price_twd),
+        description: editFormData.description || null,
+        size_chart_url: editFormData.size_chart_url || null,
+        is_listed: editFormData.is_listed,
+        images: imageList
+      });
+      alert("商品修改儲存成功！");
+      setIsEditModalOpen(false);
+      await fetchProducts();
+    } catch (err) {
+      alert(err.response?.data?.detail || "修改商品失敗");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleCreateCategory = async (e) => {
     e.preventDefault();
     try {
@@ -205,6 +295,11 @@ export function AdminProductsPage() {
     .map(u => u.trim())
     .filter(u => u.length > 0);
 
+  const editImageListPreviews = editFormData.images
+    .split("\n")
+    .map(u => u.trim())
+    .filter(u => u.length > 0);
+
   return (
     <div>
       {/* Top Action Header */}
@@ -212,7 +307,7 @@ export function AdminProductsPage() {
         <div>
           <h1 className="heading-lg">商品與規格管理 (Catalog & SKUs)</h1>
           <p style={{ color: "var(--text-muted)", fontSize: "0.95rem" }}>
-            管理英國直送商品目錄、獨立尺寸 SKU 貨號、英鎊原價與一鍵重啟開團
+            管理英國直送商品目錄、獨立尺寸 SKU 貨號、英鎊原價、修改編輯與一鍵重啟開團
           </p>
         </div>
 
@@ -282,6 +377,14 @@ export function AdminProductsPage() {
                 <td style={{ padding: "14px 18px", textAlign: "right" }}>
                   <div style={{ display: "flex", gap: "6px", justifyContent: "flex-end" }}>
                     <button
+                      onClick={() => openEditModal(prod)}
+                      className="btn btn-sm btn-secondary"
+                      style={{ fontSize: "0.8rem", padding: "6px 12px", display: "flex", alignItems: "center", gap: "4px" }}
+                      title="編輯修改商品"
+                    >
+                      <Edit3 size={14} /> 修改
+                    </button>
+                    <button
                       onClick={() => handleArchiveToggle(prod)}
                       className={`btn btn-sm ${prod.is_archived ? "btn-outline" : "btn-secondary"}`}
                       style={{ fontSize: "0.8rem", padding: "6px 12px" }}
@@ -308,6 +411,217 @@ export function AdminProductsPage() {
           </tbody>
         </table>
       </div>
+
+      {/* Edit Product Modal */}
+      {isEditModalOpen && (
+        <div className="modal-overlay" onClick={() => !isSubmitting && setIsEditModalOpen(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "760px", maxHeight: "90vh", overflowY: "auto" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px", borderBottom: "1px solid var(--border-light)", paddingBottom: "12px" }}>
+              <h3 style={{ fontSize: "1.25rem", fontWeight: "800", color: "var(--text-main)", display: "flex", alignItems: "center", gap: "8px" }}>
+                <span>✏️</span> 修改商品資料 (Edit Product)
+              </h3>
+              <button disabled={isSubmitting} onClick={() => setIsEditModalOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}>
+                <X size={20} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleUpdateProduct}>
+              <div className="grid-2">
+                <div className="form-group">
+                  <label className="form-label" style={{ fontWeight: "700" }}>商品中文名稱 *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editFormData.name_zh}
+                    onChange={(e) => setEditFormData({ ...editFormData, name_zh: e.target.value })}
+                    className="form-control"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label" style={{ fontWeight: "700" }}>英文名稱 (選填)</label>
+                  <input
+                    type="text"
+                    value={editFormData.name_en}
+                    onChange={(e) => setEditFormData({ ...editFormData, name_en: e.target.value })}
+                    className="form-control"
+                  />
+                </div>
+              </div>
+
+              <div className="grid-3">
+                <div className="form-group">
+                  <label className="form-label" style={{ fontWeight: "700" }}>分類</label>
+                  <select
+                    value={editFormData.category_id}
+                    onChange={(e) => setEditFormData({ ...editFormData, category_id: e.target.value })}
+                    className="form-control"
+                  >
+                    <option value="">選擇分類</option>
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.id}>{c.name_zh}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label" style={{ fontWeight: "700" }}>原廠成本 (GBP £)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={editFormData.cost_gbp}
+                    onChange={(e) => setEditFormData({ ...editFormData, cost_gbp: e.target.value })}
+                    className="form-control"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label" style={{ fontWeight: "700" }}>預購售價 (NT$) *</label>
+                  <input
+                    type="number"
+                    required
+                    value={editFormData.retail_price_twd}
+                    onChange={(e) => setEditFormData({ ...editFormData, retail_price_twd: e.target.value })}
+                    className="form-control"
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" style={{ fontWeight: "700" }}>供應商名稱</label>
+                <input
+                  type="text"
+                  value={editFormData.supplier}
+                  onChange={(e) => setEditFormData({ ...editFormData, supplier: e.target.value })}
+                  className="form-control"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" style={{ fontWeight: "700" }}>商品文案說明</label>
+                <textarea
+                  rows={3}
+                  value={editFormData.description}
+                  onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                  className="form-control"
+                />
+              </div>
+
+              {/* Edit Cloudflare R2 Upload Box */}
+              <div className="form-group" style={{ backgroundColor: "#FAF8F5", padding: "16px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-light)", marginBottom: "20px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+                  <label className="form-label" style={{ margin: 0, fontWeight: "800", color: "var(--text-main)", display: "flex", alignItems: "center", gap: "6px" }}>
+                    <FileImage size={17} style={{ color: "var(--primary-heart)" }} />
+                    <span>商品主圖與照片 (Cloudflare R2 直傳)</span>
+                  </label>
+                  <label
+                    className="btn btn-sm btn-primary"
+                    style={{ cursor: "pointer", fontSize: "0.82rem", padding: "6px 14px", borderRadius: "var(--radius-full)", display: "flex", alignItems: "center", gap: "6px" }}
+                  >
+                    <Upload size={14} /> {uploadingImage ? "正在上傳至 Cloudflare..." : "📤 上傳本機圖檔至 Cloudflare"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      style={{ display: "none" }}
+                      disabled={uploadingImage || isSubmitting}
+                      onChange={(e) => handleFileUpload(e, "images", true)}
+                    />
+                  </label>
+                </div>
+
+                {/* Uploaded Thumbnail Gallery */}
+                {editImageListPreviews.length > 0 && (
+                  <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "12px" }}>
+                    {editImageListPreviews.map((url, idx) => (
+                      <div key={idx} style={{ position: "relative", width: "70px", height: "70px", borderRadius: "var(--radius-sm)", overflow: "hidden", border: "2px solid var(--primary-heart)" }}>
+                        <img src={url} alt={`upload-${idx}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        <button
+                          type="button"
+                          onClick={() => removeImageUrl(url, true)}
+                          style={{
+                            position: "absolute",
+                            top: "2px",
+                            right: "2px",
+                            background: "rgba(0,0,0,0.6)",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: "50%",
+                            width: "18px",
+                            height: "18px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            cursor: "pointer"
+                          }}
+                          title="移除此圖片"
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <textarea
+                  rows={2}
+                  value={editFormData.images}
+                  onChange={(e) => setEditFormData({ ...editFormData, images: e.target.value })}
+                  className="form-control"
+                  style={{ fontSize: "0.82rem", fontFamily: "monospace" }}
+                />
+              </div>
+
+              {/* Edit Size Chart Cloudflare R2 Upload Box */}
+              <div className="form-group" style={{ backgroundColor: "#FAF8F5", padding: "16px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-light)", marginBottom: "20px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                  <label className="form-label" style={{ margin: 0, fontWeight: "800", color: "var(--text-main)" }}>
+                    尺寸對照表圖檔 (Size Chart)
+                  </label>
+                  <label
+                    className="btn btn-sm btn-outline"
+                    style={{ cursor: "pointer", fontSize: "0.82rem", padding: "5px 12px", borderRadius: "var(--radius-full)", display: "flex", alignItems: "center", gap: "6px" }}
+                  >
+                    <Upload size={13} /> {uploadingSizeChart ? "上傳中..." : "📤 上傳尺寸表至 Cloudflare"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      style={{ display: "none" }}
+                      disabled={uploadingSizeChart || isSubmitting}
+                      onChange={(e) => handleFileUpload(e, "size_chart", true)}
+                    />
+                  </label>
+                </div>
+                <input
+                  type="text"
+                  value={editFormData.size_chart_url}
+                  onChange={(e) => setEditFormData({ ...editFormData, size_chart_url: e.target.value })}
+                  className="form-control"
+                  style={{ fontSize: "0.82rem", fontFamily: "monospace" }}
+                />
+              </div>
+
+              <div style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
+                <button type="button" disabled={isSubmitting} onClick={() => setIsEditModalOpen(false)} className="btn btn-secondary" style={{ flex: 1 }}>
+                  取消
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting || uploadingImage || uploadingSizeChart}
+                  className="btn btn-primary"
+                  style={{ flex: 1, fontWeight: "800", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      <span>正在儲存修改...</span>
+                    </>
+                  ) : (
+                    <span>儲存修改資料</span>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Import / Create Product Modal */}
       {isImportModalOpen && (
@@ -403,7 +717,7 @@ export function AdminProductsPage() {
                       multiple
                       style={{ display: "none" }}
                       disabled={uploadingImage || isSubmitting}
-                      onChange={(e) => handleFileUpload(e, "images")}
+                      onChange={(e) => handleFileUpload(e, "images", false)}
                     />
                   </label>
                 </div>
@@ -416,7 +730,7 @@ export function AdminProductsPage() {
                         <img src={url} alt={`upload-${idx}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                         <button
                           type="button"
-                          onClick={() => removeImageUrl(url)}
+                          onClick={() => removeImageUrl(url, false)}
                           style={{
                             position: "absolute",
                             top: "2px",
@@ -467,7 +781,7 @@ export function AdminProductsPage() {
                       accept="image/*"
                       style={{ display: "none" }}
                       disabled={uploadingSizeChart || isSubmitting}
-                      onChange={(e) => handleFileUpload(e, "size_chart")}
+                      onChange={(e) => handleFileUpload(e, "size_chart", false)}
                     />
                   </label>
                 </div>

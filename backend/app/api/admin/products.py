@@ -95,8 +95,20 @@ def update_product(
     if not product:
         raise HTTPException(status_code=404, detail="找不到商品")
 
-    for key, value in payload.dict(exclude_unset=True, exclude={"product_id"}).items():
+    update_data = payload.dict(exclude_unset=True, exclude={"product_id", "images"})
+    for key, value in update_data.items():
         setattr(product, key, value)
+
+    # If images were provided, update image list
+    if payload.images is not None:
+        db.query(ProductImage).filter(ProductImage.product_id == product.id).delete()
+        for idx, img_url in enumerate(payload.images):
+            db.add(ProductImage(
+                product_id=product.id,
+                image_url=img_url,
+                sort_order=idx + 1,
+                is_primary=(idx == 0)
+            ))
 
     db.commit()
     db.refresh(product)
