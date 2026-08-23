@@ -24,6 +24,19 @@ def get_r2_client():
         region_name="auto"
     )
 
+def extract_r2_key(url_or_key: str) -> Optional[str]:
+    """Extract object key from a full CDN URL or relative path."""
+    if not url_or_key:
+        return None
+    url_or_key = url_or_key.strip()
+    if "/products/" in url_or_key:
+        return "products/" + url_or_key.split("/products/")[-1].split("?")[0]
+    elif "/banners/" in url_or_key:
+        return "banners/" + url_or_key.split("/banners/")[-1].split("?")[0]
+    elif url_or_key.startswith("products/") or url_or_key.startswith("banners/"):
+        return url_or_key.split("?")[0]
+    return None
+
 async def upload_image_to_r2(file: UploadFile, folder: str = "products") -> str:
     """
     Upload an image to Cloudflare R2 bucket.
@@ -64,7 +77,6 @@ async def upload_image_to_r2(file: UploadFile, folder: str = "products") -> str:
                     public_base = f"https://pub-{public_base}" if not public_base.startswith("pub-") else f"https://{public_base}"
                 return f"{public_base}/{object_key}"
             else:
-                # Default r2.dev subdomain if configured
                 return f"https://{settings.R2_BUCKET_NAME}.r2.dev/{object_key}"
 
         except Exception as e:
@@ -79,3 +91,35 @@ async def upload_image_to_r2(file: UploadFile, folder: str = "products") -> str:
         f.write(contents)
 
     return f"/static/uploads/{folder}/{unique_filename}"
+
+def delete_image_from_r2(url_or_key: str) -> bool:
+    """
+    Delete an image object from Cloudflare R2 (and local disk if present).
+    """
+    key = extract_r2_key(url_or_key)
+    if not key:
+        return False
+
+    r2_client = get_r2_client()
+    if r2_client and settings.R2_BUCKET_NAME:
+        try:
+            r2_client.delete_object(
+                Bucket=settings.R2_BUCKET_NAME,
+                Key=key
+            )
+            print(f"[R2 Storage] Deleted object from Cloudflare R2: {key}")
+            return True
+        except Exception as e:
+            print(f"[R2 Storage Error] Failed to delete object from Cloudflare R2: {e}")
+
+    # Also clean up local file if it exists
+    local_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "data", "uploads", key))
+    if os.path.exists(local_path):
+        try:
+            os.remove(local_path)
+            print(f"[Local Storage] Deleted local file: {local_path}")
+            return True
+        except Exception as e:
+            print(f"[Local Storage Error] Failed to delete local file: {e}")
+
+    return False

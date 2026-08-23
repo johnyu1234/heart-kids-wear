@@ -1,6 +1,7 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
 from sqlalchemy.orm import Session, joinedload
+from pydantic import BaseModel
 from backend.app.database import get_db
 from backend.app.models.product import Product, ProductVariant, ProductImage, Category, GroupCampaign
 from backend.app.schemas.product import (
@@ -9,9 +10,12 @@ from backend.app.schemas.product import (
 )
 from backend.app.utils.auth import get_current_admin
 from backend.app.utils.id_generators import generate_sku
-from backend.app.services.storage import upload_image_to_r2
+from backend.app.services.storage import upload_image_to_r2, delete_image_from_r2
 
 router = APIRouter(prefix="/admin/products", tags=["Admin: Product Management"])
+
+class ImageDeleteRequest(BaseModel):
+    image_url: str
 
 @router.post("/upload-image")
 async def upload_product_image(
@@ -21,6 +25,15 @@ async def upload_product_image(
     """Upload product image or size chart to Cloudflare R2 / CDN."""
     url = await upload_image_to_r2(file, folder="products")
     return {"url": url, "filename": file.filename}
+
+@router.post("/delete-image")
+def delete_product_image(
+    payload: ImageDeleteRequest,
+    admin = Depends(get_current_admin)
+):
+    """Directly delete an uploaded image from Cloudflare R2."""
+    success = delete_image_from_r2(payload.image_url)
+    return {"success": success, "message": "圖片已自 Cloudflare R2 刪除"}
 
 @router.get("", response_model=List[ProductAdminOut])
 def admin_list_products(
@@ -91,16 +104,26 @@ def update_product(
     admin = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
-    product = db.query(Product).filter(Product.id == payload.product_id).first()
+    product = db.query(Product).options(joinedload(Product.images)).filter(Product.id == payload.product_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="找不到商品")
+
+    # If size chart was replaced, delete old one from R2
+    if payload.size_chart_url is not None and product.size_chart_url and payload.size_chart_url != product.size_chart_url:
+        delete_image_from_r2(product.size_chart_url)
 
     update_data = payload.dict(exclude_unset=True, exclude={"product_id", "images", "variants"})
     for key, value in update_data.items():
         setattr(product, key, value)
 
-    # If images were provided, update image list
+    # If images were updated, delete removed images from Cloudflare R2
     if payload.images is not None:
+        old_urls = {img.image_url for img in product.images}
+        new_urls = set(payload.images)
+        removed_urls = old_urls - new_urls
+        for rem_url in removed_urls:
+            delete_image_from_r2(rem_url)
+
         db.query(ProductImage).filter(ProductImage.product_id == product.id).delete()
         for idx, img_url in enumerate(payload.images):
             db.add(ProductImage(
@@ -110,7 +133,7 @@ def update_product(
                 is_primary=(idx == 0)
             ))
 
-    # If variants were provided, update variants and generate SKUs if needed
+    # If variants were provided, update variants
     if payload.variants is not None:
         db.query(ProductVariant).filter(ProductVariant.product_id == product.id).delete()
         for v in payload.variants:
@@ -165,16 +188,26 @@ def delete_product(
     admin = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
-    """Delete a product and its associated variants and images."""
-    product = db.query(Product).filter(Product.id == payload.product_id).first()
+    """Delete a product and all its associated variants, images, and Cloudflare R2 files."""
+    product = db.query(Product).options(joinedload(Product.images)).filter(Product.id == payload.product_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="找不到商品")
 
+    # 1. Delete all images from Cloudflare R2
+    for img in product.images:
+        if img.image_url:
+            delete_image_from_r2(img.image_url)
+
+    # 2. Delete size chart image from Cloudflare R2
+    if product.size_chart_url:
+        delete_image_from_r2(product.size_chart_url)
+
+    # 3. Clean database relations
     db.query(ProductImage).filter(ProductImage.product_id == product.id).delete()
     db.query(ProductVariant).filter(ProductVariant.product_id == product.id).delete()
     db.delete(product)
     db.commit()
-    return {"success": True, "message": "商品已成功刪除"}
+    return {"success": True, "message": "商品及 Cloudflare R2 圖檔已全數刪除"}
 
 # Category & Campaign Admin
 @router.post("/categories/create", response_model=CategoryOut)

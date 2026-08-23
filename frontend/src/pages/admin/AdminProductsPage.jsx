@@ -158,7 +158,13 @@ export function AdminProductsPage() {
     }
   };
 
-  const removeImageUrl = (urlToRemove, isEditMode = false) => {
+  const removeImageUrl = async (urlToRemove, isEditMode = false) => {
+    try {
+      await api.post("/admin/products/delete-image", { image_url: urlToRemove });
+    } catch (e) {
+      console.warn("Failed to delete from Cloudflare R2:", e);
+    }
+
     if (isEditMode) {
       const list = editFormData.images
         .split("\n")
