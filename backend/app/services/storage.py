@@ -59,7 +59,9 @@ async def upload_image_to_r2(file: UploadFile, folder: str = "products") -> str:
 
             # Build Public URL
             if settings.R2_PUBLIC_DOMAIN:
-                public_base = settings.R2_PUBLIC_DOMAIN.rstrip("/")
+                public_base = settings.R2_PUBLIC_DOMAIN.strip().rstrip("/")
+                if not public_base.startswith("http://") and not public_base.startswith("https://"):
+                    public_base = f"https://pub-{public_base}" if not public_base.startswith("pub-") else f"https://{public_base}"
                 return f"{public_base}/{object_key}"
             else:
                 # Default r2.dev subdomain if configured
