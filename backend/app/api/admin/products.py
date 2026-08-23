@@ -1,5 +1,5 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
 from sqlalchemy.orm import Session, joinedload
 from backend.app.database import get_db
 from backend.app.models.product import Product, ProductVariant, ProductImage, Category, GroupCampaign
@@ -9,8 +9,18 @@ from backend.app.schemas.product import (
 )
 from backend.app.utils.auth import get_current_admin
 from backend.app.utils.id_generators import generate_sku
+from backend.app.services.storage import upload_image_to_r2
 
 router = APIRouter(prefix="/admin/products", tags=["Admin: Product Management"])
+
+@router.post("/upload-image")
+async def upload_product_image(
+    file: UploadFile = File(...),
+    admin = Depends(get_current_admin)
+):
+    """Upload product image or size chart to Cloudflare R2 / CDN."""
+    url = await upload_image_to_r2(file, folder="products")
+    return {"url": url, "filename": file.filename}
 
 @router.get("", response_model=List[ProductAdminOut])
 def admin_list_products(

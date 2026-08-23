@@ -2,6 +2,7 @@ import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 from backend.app.config import settings
 from backend.app.api.router import api_router
@@ -23,6 +24,11 @@ app = FastAPI(
     openapi_url="/openapi.json",
     lifespan=lifespan
 )
+
+# Ensure upload directory exists for static file fallback
+upload_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data", "uploads"))
+os.makedirs(upload_dir, exist_ok=True)
+app.mount("/static/uploads", StaticFiles(directory=upload_dir), name="uploads")
 
 # Configure CORS for React / Vite frontend
 origins = [

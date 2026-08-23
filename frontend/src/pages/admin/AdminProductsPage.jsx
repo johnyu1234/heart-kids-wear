@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../../api/client";
 import { formatCurrency } from "../../utils/currency";
-import { Plus, Archive, RefreshCw, Edit, Tag, Eye, EyeOff, Layers } from "lucide-react";
+import { Plus, Archive, RefreshCw, Edit, Tag, Eye, EyeOff, Layers, Upload, Image as ImageIcon } from "lucide-react";
 
 export function AdminProductsPage() {
   const [products, setProducts] = useState([]);
@@ -9,6 +9,8 @@ export function AdminProductsPage() {
   const [loading, setLoading] = useState(true);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingSizeChart, setUploadingSizeChart] = useState(false);
 
   // New Product Form State
   const [formData, setFormData] = useState({
@@ -52,6 +54,42 @@ export function AdminProductsPage() {
   useEffect(() => {
     fetchProducts();
   }, []);
+
+  const handleFileUpload = async (e, fieldType = "images") => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const uploadFormData = new FormData();
+    uploadFormData.append("file", file);
+
+    try {
+      if (fieldType === "images") setUploadingImage(true);
+      else setUploadingSizeChart(true);
+
+      const res = await api.post("/admin/products/upload-image", uploadFormData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+
+      const cdnUrl = res.data.url;
+      if (fieldType === "images") {
+        setFormData(prev => ({
+          ...prev,
+          images: prev.images ? `${prev.images}\n${cdnUrl}` : cdnUrl
+        }));
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          size_chart_url: cdnUrl
+        }));
+      }
+    } catch (err) {
+      alert("圖片上傳至 Cloudflare R2 失敗，請稍後再試。");
+    } finally {
+      setUploadingImage(false);
+      setUploadingSizeChart(false);
+      e.target.value = "";
+    }
+  };
 
   const handleArchiveToggle = async (product) => {
     try {
@@ -184,24 +222,21 @@ export function AdminProductsPage() {
                 </td>
                 <td style={{ padding: "14px 18px" }}>
                   {prod.is_archived ? (
-                    <span className="badge badge-abandoned">已封存</span>
+                    <span className="badge" style={{ backgroundColor: "#F1F5F9", color: "#64748B" }}>已封存</span>
                   ) : (
-                    <span className="badge badge-registered">開團預購中</span>
+                    <span className="badge badge-success">開團熱賣中</span>
                   )}
                 </td>
                 <td style={{ padding: "14px 18px", textAlign: "right" }}>
                   <button
                     onClick={() => handleArchiveToggle(prod)}
-                    className={`btn btn-sm ${prod.is_archived ? "btn-primary" : "btn-secondary"}`}
+                    className={`btn btn-sm ${prod.is_archived ? "btn-outline" : "btn-secondary"}`}
+                    style={{ fontSize: "0.8rem", padding: "6px 12px" }}
                   >
                     {prod.is_archived ? (
-                      <>
-                        <RefreshCw size={14} /> 一鍵重新開團
-                      </>
+                      <><RefreshCw size={14} /> 一鍵重啟</>
                     ) : (
-                      <>
-                        <Archive size={14} /> 封存商品
-                      </>
+                      <><Archive size={14} /> 封存歸檔</>
                     )}
                   </button>
                 </td>
@@ -211,12 +246,12 @@ export function AdminProductsPage() {
         </table>
       </div>
 
-      {/* Import Product Modal */}
+      {/* Import / Create Product Modal */}
       {isImportModalOpen && (
         <div className="modal-overlay" onClick={() => setIsImportModalOpen(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "640px" }}>
-            <h3 style={{ fontSize: "1.2rem", fontWeight: "700", marginBottom: "18px" }}>新增商品 / 預購開團</h3>
-
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "700px" }}>
+            <h3 style={{ fontSize: "1.2rem", fontWeight: "700", marginBottom: "16px" }}>新增英國商品 / 開團匯入</h3>
+            
             <form onSubmit={handleCreateProduct}>
               <div className="grid-2">
                 <div className="form-group">
@@ -224,17 +259,17 @@ export function AdminProductsPage() {
                   <input
                     type="text"
                     required
-                    placeholder="例如：英倫恐龍印花純棉連身衣"
+                    placeholder="例：英國品牌經典純棉童趣短袖上衣"
                     value={formData.name_zh}
                     onChange={(e) => setFormData({ ...formData, name_zh: e.target.value })}
                     className="form-control"
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">英文名稱 (選填)</label>
+                  <label className="form-label">商品英文名稱</label>
                   <input
                     type="text"
-                    placeholder="Dino Cotton Sleepsuit"
+                    placeholder="例：British Classic Cotton Graphic Tee"
                     value={formData.name_en}
                     onChange={(e) => setFormData({ ...formData, name_en: e.target.value })}
                     className="form-control"
@@ -280,13 +315,56 @@ export function AdminProductsPage() {
                 </div>
               </div>
 
+              {/* Product Images with Cloudflare R2 Upload */}
               <div className="form-group">
-                <label className="form-label">商品圖片網址 (每行一個網址)</label>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                  <label className="form-label" style={{ margin: 0 }}>商品圖片網址 (Cloudflare R2 / CDN)</label>
+                  <label
+                    className="btn btn-sm btn-outline"
+                    style={{ cursor: "pointer", fontSize: "0.78rem", padding: "4px 10px", borderRadius: "var(--radius-full)", display: "flex", alignItems: "center", gap: "4px" }}
+                  >
+                    <Upload size={13} /> {uploadingImage ? "上傳中..." : "上傳本機圖至 Cloudflare"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      style={{ display: "none" }}
+                      disabled={uploadingImage}
+                      onChange={(e) => handleFileUpload(e, "images")}
+                    />
+                  </label>
+                </div>
                 <textarea
                   rows={2}
-                  placeholder="https://...jpg"
+                  placeholder="https://...jpg (可直接貼上網址，或點右上角上傳至 Cloudflare R2)"
                   value={formData.images}
                   onChange={(e) => setFormData({ ...formData, images: e.target.value })}
+                  className="form-control"
+                />
+              </div>
+
+              {/* Size Chart Image with Cloudflare R2 Upload */}
+              <div className="form-group">
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                  <label className="form-label" style={{ margin: 0 }}>尺寸對照表圖檔 (Size Chart)</label>
+                  <label
+                    className="btn btn-sm btn-outline"
+                    style={{ cursor: "pointer", fontSize: "0.78rem", padding: "4px 10px", borderRadius: "var(--radius-full)", display: "flex", alignItems: "center", gap: "4px" }}
+                  >
+                    <Upload size={13} /> {uploadingSizeChart ? "上傳中..." : "上傳尺寸表至 Cloudflare"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      style={{ display: "none" }}
+                      disabled={uploadingSizeChart}
+                      onChange={(e) => handleFileUpload(e, "size_chart")}
+                    />
+                  </label>
+                </div>
+                <input
+                  type="text"
+                  placeholder="https://...jpg (尺寸表圖片網址)"
+                  value={formData.size_chart_url}
+                  onChange={(e) => setFormData({ ...formData, size_chart_url: e.target.value })}
                   className="form-control"
                 />
               </div>
