@@ -14,6 +14,8 @@ from backend.app.models import (
     MessageTemplate, Message, PointsCard, ExpenseLedger
 )
 
+R2_PUBLIC_DOMAIN = os.getenv("R2_PUBLIC_DOMAIN", "https://pub-70b8f69ff37f46a4999b9caaabaa9281.r2.dev").rstrip("/")
+
 def init_db():
     print("Creating all database tables...")
     Base.metadata.create_all(bind=engine)
@@ -144,7 +146,7 @@ def init_db():
             )
             db.add(admin)
             db.commit()
-            print("Admin account created: admin@heartkidswear.com / admin123456")
+            print("Admin account created: admin@heartkidswear.com")
 
         demo_user_email = "wai-san@heartkidswear.com"
         demo_user = db.query(Member).filter(Member.email == demo_user_email).first()
@@ -191,7 +193,7 @@ def init_db():
             db.commit()
             print("Demo member created: wai-san@heartkidswear.com / password123")
 
-        # 5. Seed Demo Group Campaign & Products
+        # 5. Seed Demo Group Campaign & Products with Cloudflare R2 CDN URLs
         campaign = db.query(GroupCampaign).first()
         if not campaign:
             campaign = GroupCampaign(
@@ -216,14 +218,14 @@ def init_db():
                     "cost_gbp": Decimal("12.50"),
                     "retail_price_twd": Decimal("680.00"),
                     "description": "100% 有機純棉，觸感細緻，不起毛球，適合台灣夏季悶熱氣候穿著。",
-                    "size_chart_url": "https://images.unsplash.com/photo-1503944583220-79d8926ad5e2?w=800",
+                    "size_chart_url": f"{R2_PUBLIC_DOMAIN}/products/size_chart_standard.jpg",
                     "is_listed": True,
                     "variants": [
                         {"sku": "TEE-BOY-2-3Y", "size_label": "2-3y", "color": "Navy Blue", "stock_quantity": 20},
                         {"sku": "TEE-BOY-3-4Y", "size_label": "3-4y", "color": "Navy Blue", "stock_quantity": 25},
                         {"sku": "TEE-BOY-4-5Y", "size_label": "4-5y", "color": "Navy Blue", "stock_quantity": 15},
                     ],
-                    "image": "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=800"
+                    "image": f"{R2_PUBLIC_DOMAIN}/products/tee_boy_classic.jpg"
                 },
                 {
                     "name_zh": "英倫碎花荷葉邊純棉洋裝",
@@ -234,14 +236,14 @@ def init_db():
                     "cost_gbp": Decimal("18.00"),
                     "retail_price_twd": Decimal("980.00"),
                     "description": "經典優雅小碎花圖案，荷葉邊袖口設計，甜美氣質必備洋裝。",
-                    "size_chart_url": "https://images.unsplash.com/photo-1503944583220-79d8926ad5e2?w=800",
+                    "size_chart_url": f"{R2_PUBLIC_DOMAIN}/products/size_chart_standard.jpg",
                     "is_listed": True,
                     "variants": [
                         {"sku": "DRS-GIRL-2-3Y", "size_label": "2-3y", "color": "Rose Pink", "stock_quantity": 18},
                         {"sku": "DRS-GIRL-3-4Y", "size_label": "3-4y", "color": "Rose Pink", "stock_quantity": 22},
                         {"sku": "DRS-GIRL-4-5Y", "size_label": "4-5y", "color": "Rose Pink", "stock_quantity": 12},
                     ],
-                    "image": "https://images.unsplash.com/photo-1622290291468-a28f7a7dc6a8?w=800"
+                    "image": f"{R2_PUBLIC_DOMAIN}/products/dress_girl_floral.jpg"
                 },
                 {
                     "name_zh": "舒適彈力休閒長褲 (2入組)",
@@ -252,13 +254,13 @@ def init_db():
                     "cost_gbp": Decimal("15.00"),
                     "retail_price_twd": Decimal("820.00"),
                     "description": "耐磨透氣抽繩休閒長褲，活動自如，一套兩件超值組合。",
-                    "size_chart_url": "https://images.unsplash.com/photo-1503944583220-79d8926ad5e2?w=800",
+                    "size_chart_url": f"{R2_PUBLIC_DOMAIN}/products/size_chart_standard.jpg",
                     "is_listed": True,
                     "variants": [
                         {"sku": "PNT-BOY-2-3Y", "size_label": "2-3y", "color": "Grey/Khaki", "stock_quantity": 15},
                         {"sku": "PNT-BOY-3-4Y", "size_label": "3-4y", "color": "Grey/Khaki", "stock_quantity": 20},
                     ],
-                    "image": "https://images.unsplash.com/photo-1503944583220-79d8926ad5e2?w=800"
+                    "image": f"{R2_PUBLIC_DOMAIN}/products/joggers_boy_casual.jpg"
                 }
             ]
 
@@ -275,7 +277,7 @@ def init_db():
                     db.add(ProductVariant(product_id=p.id, **v_data))
 
             db.commit()
-            print("Demo group campaign and products seeded.")
+            print("Demo group campaign and products seeded with Cloudflare R2 image URLs.")
 
     except Exception as e:
         db.rollback()
