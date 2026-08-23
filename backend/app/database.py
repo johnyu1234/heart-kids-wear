@@ -3,21 +3,30 @@ from sqlalchemy import create_engine, event
 from sqlalchemy.orm import declarative_base, sessionmaker
 from backend.app.config import settings
 
-# Ensure data directory exists
-db_path = settings.DATABASE_URL.replace("sqlite:///", "")
-os.makedirs(os.path.dirname(db_path), exist_ok=True)
+db_url = settings.DATABASE_URL
 
-# Create engine with connect_args for SQLite
-connect_args = {"check_same_thread": False} if settings.DATABASE_URL.startswith("sqlite") else {}
+# Fix legacy postgres:// dialect prefix to postgresql://
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+
+# Ensure data directory exists for local SQLite
+if db_url.startswith("sqlite"):
+    raw_path = db_url.replace("sqlite:///", "")
+    dir_name = os.path.dirname(raw_path)
+    if dir_name:
+        os.makedirs(dir_name, exist_ok=True)
+    connect_args = {"check_same_thread": False}
+else:
+    connect_args = {}
 
 engine = create_engine(
-    settings.DATABASE_URL,
+    db_url,
     connect_args=connect_args,
     echo=False
 )
 
 # Enable SQLite foreign keys & WAL mode
-if settings.DATABASE_URL.startswith("sqlite"):
+if db_url.startswith("sqlite"):
     @event.listens_for(engine, "connect")
     def set_sqlite_pragma(dbapi_connection, connection_record):
         cursor = dbapi_connection.cursor()
