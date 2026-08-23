@@ -122,3 +122,16 @@ class GroupCampaignOut(GroupCampaignBase):
     id: int
     created_at: datetime
     products: List[ProductOut] = []
+
+class WishlistAddRequest(BaseModel):
+    product_id: int
+
+class WishlistRemoveRequest(BaseModel):
+    product_id: int
+
+class WishlistOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    product_id: int
+    added_at: datetime
+    product: ProductOut
