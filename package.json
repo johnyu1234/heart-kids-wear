@@ -2,8 +2,11 @@
   "name": "heart-kids-wear",
   "private": true,
   "version": "1.0.0",
+  "workspaces": [
+    "frontend"
+  ],
   "scripts": {
-    "build": "npm --prefix frontend install && npm --prefix frontend run build",
+    "build": "npm --prefix frontend run build",
     "dev": "npm --prefix frontend run dev",
     "ngrok": "powershell -ExecutionPolicy Bypass -File ./start_ngrok.ps1",
     "test:e2e": "npm --prefix frontend run test:e2e",
