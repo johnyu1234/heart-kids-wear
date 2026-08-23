@@ -38,29 +38,35 @@ export function CartDropdown({ onClose }) {
       ) : (
         <>
           <div style={{ maxHeight: "240px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "12px", marginBottom: "16px" }}>
-            {cart.items.map((item) => (
-              <div key={item.id} style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-                <img
-                  src={item.variant?.product?.images?.[0]?.image_url || "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=120"}
-                  alt={item.variant?.product?.name_zh}
-                  style={{ width: "50px", height: "50px", objectFit: "cover", borderRadius: "var(--radius-sm)" }}
-                />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: "0.85rem", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                    {item.variant?.product?.name_zh}
+            {cart.items.map((item) => {
+              const product = item.variant?.product;
+              const imageUrl = product?.images?.[0]?.image_url || "https://pub-70b8f69ff37f46a4999b9caaabaa9281.r2.dev/products/tee_boy_classic.jpg";
+              const unitPrice = product?.retail_price_twd || 0;
+
+              return (
+                <div key={item.id} style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                  <img
+                    src={imageUrl}
+                    alt={product?.name_zh || "Product"}
+                    style={{ width: "50px", height: "50px", objectFit: "cover", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-light)" }}
+                  />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: "0.85rem", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {product?.name_zh || "預購商品"}
+                    </div>
+                    <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                      {item.variant?.size_label} | {item.variant?.color || "常規"} × {item.quantity}
+                    </div>
+                    <div style={{ fontSize: "0.85rem", fontWeight: "700", color: "var(--primary-heart)" }}>
+                      {formatCurrency(unitPrice * item.quantity)}
+                    </div>
                   </div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                    {item.variant?.size_label} | {item.variant?.color || "Standard"} × {item.quantity}
-                  </div>
-                  <div style={{ fontSize: "0.85rem", fontWeight: "700", color: "var(--primary-heart)" }}>
-                    {formatCurrency(item.variant?.product?.retail_price_twd * item.quantity)}
-                  </div>
+                  <button onClick={() => removeItem(item.id)} style={{ color: "var(--text-light)", padding: "4px", background: "none", border: "none", cursor: "pointer" }}>
+                    <Trash2 size={16} />
+                  </button>
                 </div>
-                <button onClick={() => removeItem(item.id)} style={{ color: "var(--text-light)", padding: "4px" }}>
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <div style={{ borderTop: "1px solid var(--border-light)", paddingTop: "12px", marginBottom: "16px" }}>
@@ -77,10 +83,10 @@ export function CartDropdown({ onClose }) {
           </div>
 
           <div style={{ display: "flex", gap: "8px" }}>
-            <Link to="/cart" onClick={onClose} className="btn btn-secondary" style={{ flex: 1, padding: "8px" }}>
+            <Link to="/cart" onClick={onClose} className="btn btn-secondary" style={{ flex: 1, padding: "8px", textAlign: "center" }}>
               {t("cart.view_cart")}
             </Link>
-            <Link to="/checkout" onClick={onClose} className="btn btn-primary" style={{ flex: 1, padding: "8px" }}>
+            <Link to="/checkout" onClick={onClose} className="btn btn-primary" style={{ flex: 1, padding: "8px", textAlign: "center" }}>
               {t("cart.checkout")} <ArrowRight size={14} />
             </Link>
           </div>

@@ -40,9 +40,9 @@ export function CartPage() {
           {cart.items.map((item) => (
             <div key={item.id} className="card" style={{ display: "flex", gap: "18px", padding: "18px", alignItems: "center" }}>
               <img
-                src={item.variant?.product?.images?.[0]?.image_url || "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=160"}
+                src={item.variant?.product?.images?.[0]?.image_url || "https://pub-70b8f69ff37f46a4999b9caaabaa9281.r2.dev/products/tee_boy_classic.jpg"}
                 alt={item.variant?.product?.name_zh}
-                style={{ width: "90px", height: "90px", objectFit: "cover", borderRadius: "var(--radius-md)" }}
+                style={{ width: "90px", height: "90px", objectFit: "cover", borderRadius: "var(--radius-md)", border: "1px solid var(--border-light)" }}
               />
 
               <div style={{ flex: 1 }}>

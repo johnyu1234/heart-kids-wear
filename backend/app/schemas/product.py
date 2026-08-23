@@ -16,7 +16,25 @@ class CategoryOut(CategoryBase):
     is_active: bool
     children: Optional[List["CategoryOut"]] = Field(default_factory=list)
 
+class ProductImageOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    image_url: str
+    sort_order: int
+    is_primary: bool
+
+class ProductSummaryOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name_zh: str
+    name_en: Optional[str] = None
+    category_id: Optional[int] = None
+    retail_price_twd: Decimal
+    images: List[ProductImageOut] = Field(default_factory=list)
+
 class ProductVariantBase(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: Optional[int] = None
     sku: str
     size_label: Optional[str] = None
     color: Optional[str] = None
@@ -31,12 +49,10 @@ class ProductVariantCreate(BaseModel):
     style: Optional[str] = None
     stock_quantity: int = 0
 
-class ProductImageOut(BaseModel):
+class ProductVariantOut(ProductVariantBase):
     model_config = ConfigDict(from_attributes=True)
     id: int
-    image_url: str
-    sort_order: int
-    is_primary: bool
+    product: Optional[ProductSummaryOut] = None
 
 class ProductBase(BaseModel):
     name_zh: str
