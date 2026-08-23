@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../../api/client";
+import { useCategories } from "../../context/CategoriesContext";
 import { formatCurrency } from "../../utils/currency";
 import { Plus, Archive, RefreshCw, Layers, Upload, Image as ImageIcon, X, CheckCircle2, FileImage, Trash2, Edit3, Loader2, Tag } from "lucide-react";
 
 export function AdminProductsPage() {
   const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const { categories, refreshCategories } = useCategories();
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -26,10 +27,10 @@ export function AdminProductsPage() {
     size_chart_url: "",
     images: "",
     variants: [
-      { size_label: "2-3y", color: "常規", stock_quantity: 0 },
-      { size_label: "3-4y", color: "常規", stock_quantity: 0 },
-      { size_label: "4-5y", color: "常規", stock_quantity: 0 },
-      { size_label: "5-6y", color: "常規", stock_quantity: 0 },
+      { size_label: "2-3y", color: "常規", stock_quantity: 10 },
+      { size_label: "3-4y", color: "常規", stock_quantity: 10 },
+      { size_label: "4-5y", color: "常規", stock_quantity: 10 },
+      { size_label: "5-6y", color: "常規", stock_quantity: 10 },
     ]
   });
 
@@ -39,7 +40,7 @@ export function AdminProductsPage() {
     name_zh: "",
     name_en: "",
     category_id: "",
-    supplier: "",
+    supplier: "Next UK",
     cost_gbp: "",
     retail_price_twd: "",
     description: "",
@@ -62,12 +63,8 @@ export function AdminProductsPage() {
 
   const fetchProducts = async () => {
     try {
-      const [prodRes, catRes] = await Promise.all([
-        api.get("/admin/products"),
-        api.get("/categories")
-      ]);
+      const prodRes = await api.get("/admin/products");
       setProducts(prodRes.data);
-      setCategories(catRes.data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -357,6 +354,7 @@ export function AdminProductsPage() {
       setIsCategoryModalOpen(false);
       setNewCatNameZh("");
       setNewCatNameEn("");
+      await refreshCategories();
       await fetchProducts();
     } catch (err) {
       alert("新增分類失敗");

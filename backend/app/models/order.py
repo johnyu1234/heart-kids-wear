@@ -90,8 +90,8 @@ class CartItem(Base):
     __tablename__ = "cart_items"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    member_id = Column(Integer, ForeignKey("members.id", ondelete="CASCADE"), nullable=False)
-    variant_id = Column(Integer, ForeignKey("product_variants.id", ondelete="CASCADE"), nullable=False)
+    member_id = Column(Integer, ForeignKey("members.id", ondelete="CASCADE"), nullable=False, index=True)
+    variant_id = Column(Integer, ForeignKey("product_variants.id", ondelete="CASCADE"), nullable=False, index=True)
     quantity = Column(Integer, default=1, nullable=False)
     added_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
@@ -103,8 +103,8 @@ class Wishlist(Base):
     __tablename__ = "wishlist"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    member_id = Column(Integer, ForeignKey("members.id", ondelete="CASCADE"), nullable=False)
-    product_id = Column(Integer, ForeignKey("products.id", ondelete="CASCADE"), nullable=False)
+    member_id = Column(Integer, ForeignKey("members.id", ondelete="CASCADE"), nullable=False, index=True)
+    product_id = Column(Integer, ForeignKey("products.id", ondelete="CASCADE"), nullable=False, index=True)
     added_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     member = relationship("Member", back_populates="wishlist_items")

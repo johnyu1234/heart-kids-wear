@@ -1,4 +1,5 @@
 from typing import List, Optional
+import time
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, joinedload
 from backend.app.database import get_db
@@ -6,6 +7,10 @@ from backend.app.models.product import Product, Category, GroupCampaign
 from backend.app.schemas.product import ProductOut, GroupCampaignOut
 
 router = APIRouter(prefix="/products", tags=["Product Catalog"])
+
+# In-memory cache for product list queries (30s TTL)
+_product_cache = {}
+_PRODUCT_CACHE_TTL = 30
 
 @router.get("", response_model=List[ProductOut])
 def list_products(
@@ -15,6 +20,15 @@ def list_products(
     search: Optional[str] = Query(None, description="Keyword search in product name"),
     db: Session = Depends(get_db)
 ):
+    # Build cache key from query params
+    cache_key = f"{category_id}:{campaign_id}:{sort}:{search}"
+    now = time.time()
+
+    if cache_key in _product_cache:
+        cached_data, cached_at = _product_cache[cache_key]
+        if (now - cached_at) < _PRODUCT_CACHE_TTL:
+            return cached_data
+
     query = (
         db.query(Product)
         .options(
@@ -50,7 +64,9 @@ def list_products(
     else:
         query = query.order_by(Product.created_at.desc())
 
-    return query.all()
+    results = query.all()
+    _product_cache[cache_key] = (results, now)
+    return results
 
 @router.get("/{product_id}", response_model=ProductOut)
 def get_product_detail(product_id: int, db: Session = Depends(get_db)):

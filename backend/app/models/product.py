@@ -63,7 +63,7 @@ class ProductVariant(Base):
     __tablename__ = "product_variants"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    product_id = Column(Integer, ForeignKey("products.id", ondelete="CASCADE"), nullable=False)
+    product_id = Column(Integer, ForeignKey("products.id", ondelete="CASCADE"), nullable=False, index=True)
     sku = Column(String(50), unique=True, index=True, nullable=False)      # Independent SKU per size/color
     size_label = Column(String(20), nullable=True)                         # 2-3y, 3-4y, etc.
     color = Column(String(50), nullable=True)
@@ -80,7 +80,7 @@ class ProductImage(Base):
     __tablename__ = "product_images"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    product_id = Column(Integer, ForeignKey("products.id", ondelete="CASCADE"), nullable=False)
+    product_id = Column(Integer, ForeignKey("products.id", ondelete="CASCADE"), nullable=False, index=True)
     image_url = Column(String(500), nullable=False)
     sort_order = Column(Integer, default=0, nullable=False)
     is_primary = Column(Boolean, default=False, nullable=False)

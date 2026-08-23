@@ -7,16 +7,18 @@ if (rawBaseUrl.startsWith("http") && !rawBaseUrl.endsWith("/api")) {
 
 export const api = axios.create({
   baseURL: rawBaseUrl,
-  headers: {
-    "Content-Type": "application/json",
-  },
 });
 
-// Attach JWT token automatically
+// Request interceptor: Attach JWT and strip Content-Type on GET requests (avoids CORS preflight)
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+  }
+  if (config.method?.toLowerCase() === "get") {
+    delete config.headers["Content-Type"];
+  } else if (!config.headers["Content-Type"]) {
+    config.headers["Content-Type"] = "application/json";
   }
   return config;
 });

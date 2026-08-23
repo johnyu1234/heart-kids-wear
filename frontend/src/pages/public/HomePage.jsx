@@ -5,11 +5,12 @@ import { formatCurrency } from "../../utils/currency";
 import { useTranslation } from "../../i18n/I18nContext";
 import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
+import { useCategories } from "../../context/CategoriesContext";
 import { Sparkles, ArrowRight, ShieldCheck, Truck, RefreshCw, Heart, User } from "lucide-react";
 
 export function HomePage() {
   const { user } = useAuth();
-  const [categories, setCategories] = useState([]);
+  const { categories } = useCategories();
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
@@ -18,11 +19,7 @@ export function HomePage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [catRes, prodRes] = await Promise.all([
-          api.get("/categories"),
-          api.get("/products")
-        ]);
-        setCategories(catRes.data);
+        const prodRes = await api.get("/products");
         setFeaturedProducts(prodRes.data);
       } catch (err) {
         console.error(err);

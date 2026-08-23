@@ -1,14 +1,27 @@
 from decimal import Decimal
 from typing import List, Tuple
+import time
 from sqlalchemy.orm import Session
 from backend.app.models.order import CartItem
 from backend.app.models.product import ProductVariant, Product
 from backend.app.models.finance import SystemConfig, PointsCard
 from backend.app.models.user import Member
 
+# In-memory cache for system config values (120s TTL)
+_config_cache = {}
+_CONFIG_CACHE_TTL = 120
+
 def get_system_config(db: Session, key: str, default: str) -> str:
+    now = time.time()
+    if key in _config_cache:
+        cached_val, cached_at = _config_cache[key]
+        if (now - cached_at) < _CONFIG_CACHE_TTL:
+            return cached_val
+
     cfg = db.query(SystemConfig).filter(SystemConfig.config_key == key).first()
-    return cfg.config_value if cfg else default
+    value = cfg.config_value if cfg else default
+    _config_cache[key] = (value, now)
+    return value
 
 def calculate_checkout(
     db: Session,

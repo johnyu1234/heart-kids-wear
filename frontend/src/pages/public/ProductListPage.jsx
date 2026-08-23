@@ -3,12 +3,13 @@ import { useSearchParams, Link } from "react-router-dom";
 import { api } from "../../api/client";
 import { formatCurrency } from "../../utils/currency";
 import { useTranslation } from "../../i18n/I18nContext";
+import { useCategories } from "../../context/CategoriesContext";
 import { SlidersHorizontal, ArrowUpDown } from "lucide-react";
 
 export function ProductListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const { categories } = useCategories();
   const [loading, setLoading] = useState(true);
   const { lang, t } = useTranslation();
 
@@ -20,17 +21,13 @@ export function ProductListPage() {
     async function load() {
       setLoading(true);
       try {
-        const [catRes, prodRes] = await Promise.all([
-          api.get("/categories"),
-          api.get("/products", {
-            params: {
-              category_id: currentCategory || undefined,
-              sort: currentSort || undefined,
-              search: currentSearch || undefined,
-            },
-          }),
-        ]);
-        setCategories(catRes.data);
+        const prodRes = await api.get("/products", {
+          params: {
+            category_id: currentCategory || undefined,
+            sort: currentSort || undefined,
+            search: currentSearch || undefined,
+          },
+        });
         setProducts(prodRes.data);
       } catch (err) {
         console.error(err);
