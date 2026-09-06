@@ -53,6 +53,88 @@ export function AdminOrdersPage() {
     fetchOrders();
   }, [search]);
 
+  const filterItemByTab = (item, order, tab) => {
+    if (!tab || tab === "ALL") return true;
+
+    const isException =
+      item.preorder_status === "DEFECTIVE" ||
+      item.preorder_status === "OUT_OF_STOCK" ||
+      Boolean(item.defect_description) ||
+      Boolean(item.defect_date) ||
+      Boolean(item.discontinued_date);
+
+    if (tab === "IN_PROGRESS") {
+      // 分頁 4：處理中 (瑕疵/斷貨處理)
+      return isException;
+    }
+
+    if (isException) {
+      return false;
+    }
+
+    const isOrdered = Boolean(item.ordered_date_text && item.ordered_date_text.trim());
+    const isArrived = Boolean(item.arrival_date_text && item.arrival_date_text.trim());
+    const isShipped =
+      item.preorder_status === "SHIPPED" ||
+      order.status === "SHIPPED_TO_CUSTOMER" ||
+      order.status === "DELIVERED";
+
+    if (tab === "UNORDERED") {
+      // 分頁 1：未訂購 (待向英國下單) -> 尚未填寫英國下單日
+      return !isOrdered && !isShipped;
+    }
+
+    if (tab === "UNDELIVERED") {
+      // 分頁 2：未到貨 (英國運送中) -> 已填寫下單日，但尚未到貨
+      return isOrdered && !isArrived && !isShipped;
+    }
+
+    if (tab === "UNSHIPPED") {
+      // 分頁 3：未出貨 (抵台理貨中) -> 已到貨，但尚未寄出給客人
+      return isArrived && !isShipped;
+    }
+
+    return true;
+  };
+
+  const getTabCounts = () => {
+    let unOrdered = 0;
+    let unDelivered = 0;
+    let unShipped = 0;
+    let inProgress = 0;
+    let all = 0;
+
+    orders.forEach((ord) => {
+      ord.items?.forEach((item) => {
+        all++;
+        if (filterItemByTab(item, ord, "UNORDERED")) unOrdered++;
+        if (filterItemByTab(item, ord, "UNDELIVERED")) unDelivered++;
+        if (filterItemByTab(item, ord, "UNSHIPPED")) unShipped++;
+        if (filterItemByTab(item, ord, "IN_PROGRESS")) inProgress++;
+      });
+    });
+
+    return {
+      ALL: all,
+      UNORDERED: unOrdered,
+      UNDELIVERED: unDelivered,
+      UNSHIPPED: unShipped,
+      IN_PROGRESS: inProgress,
+    };
+  };
+
+  const tabCounts = getTabCounts();
+
+  const filteredOrders = orders
+    .map((ord) => {
+      const matchingItems = ord.items?.filter((item) => filterItemByTab(item, ord, activeTab)) || [];
+      return {
+        ...ord,
+        filteredItems: activeTab === "ALL" ? (ord.items || []) : matchingItems,
+      };
+    })
+    .filter((ord) => ord.filteredItems && ord.filteredItems.length > 0);
+
   const handleOpenEdit = (item, order) => {
     setEditingItem({ item, order });
     setEditForm({
@@ -118,13 +200,13 @@ export function AdminOrdersPage() {
       </div>
 
       {/* 4 Tabs Filter */}
-      <div style={{ display: "flex", gap: "10px", marginBottom: "24px", borderBottom: "1px solid var(--border-light)", paddingBottom: "12px" }}>
+      <div style={{ display: "flex", gap: "10px", marginBottom: "24px", borderBottom: "1px solid var(--border-light)", paddingBottom: "12px", flexWrap: "wrap" }}>
         {[
-          { key: "ALL", label: "全部訂單" },
-          { key: "UNORDERED", label: "分頁 1：未訂購 (待向英國下單)" },
-          { key: "UNDELIVERED", label: "分頁 2：未到貨 (英國運送中)" },
-          { key: "UNSHIPPED", label: "分頁 3：未出貨 (抵台理貨中)" },
-          { key: "IN_PROGRESS", label: "分頁 4：處理中 (瑕疵/斷貨處理)" },
+          { key: "ALL", label: `全部項目 (${tabCounts.ALL})` },
+          { key: "UNORDERED", label: `分頁 1：未訂購 (${tabCounts.UNORDERED})`, subtitle: "待向英國下單" },
+          { key: "UNDELIVERED", label: `分頁 2：未到貨 (${tabCounts.UNDELIVERED})`, subtitle: "英國運送中" },
+          { key: "UNSHIPPED", label: `分頁 3：未出貨 (${tabCounts.UNSHIPPED})`, subtitle: "抵台理貨中" },
+          { key: "IN_PROGRESS", label: `分頁 4：處理中 (${tabCounts.IN_PROGRESS})`, subtitle: "瑕疵/斷貨處理" },
         ].map((tab) => (
           <button
             key={tab.key}
@@ -133,129 +215,145 @@ export function AdminOrdersPage() {
             style={{
               backgroundColor: activeTab === tab.key ? "var(--primary-heart)" : "var(--bg-subtle)",
               color: activeTab === tab.key ? "#FFFFFF" : "var(--text-main)",
-              fontWeight: "700"
+              fontWeight: "700",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px"
             }}
           >
-            {tab.label}
+            <span>{tab.label}</span>
+            {tab.subtitle && (
+              <span style={{ fontSize: "0.74rem", opacity: activeTab === tab.key ? 0.9 : 0.65 }}>
+                ({tab.subtitle})
+              </span>
+            )}
           </button>
         ))}
       </div>
 
       {/* Orders List & Logistics Items */}
       <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-        {orders.map((ord) => (
-          <div key={ord.id} className="card" style={{ padding: "20px" }}>
-            {/* Order Meta Header */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--border-light)", paddingBottom: "14px", marginBottom: "16px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-                <span style={{ fontSize: "1.1rem", fontWeight: "800", color: "var(--text-main)" }}>
-                  訂單：{ord.order_number}
-                </span>
-                <span className="badge" style={{ backgroundColor: "var(--bg-subtle)", color: "var(--text-main)" }}>
-                  買家：{ord.member?.full_name} ({ord.member?.member_id || "新買家"})
-                </span>
-                <span className="badge" style={{ backgroundColor: ord.status === "PAID" ? "var(--accent-mint-light)" : "var(--accent-gold-light)", color: ord.status === "PAID" ? "var(--accent-mint)" : "var(--accent-gold)" }}>
-                  狀態：{ord.status}
-                </span>
-                {ord.shipping_type === "POST_OFFICE" && (
-                  <span className="badge" style={{ backgroundColor: "#E8F0FE", color: "#1967D2" }}>
-                    中華郵政宅配
-                  </span>
-                )}
-              </div>
-
-              <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                <div style={{ fontWeight: "800", color: "var(--primary-heart)", fontSize: "1.15rem" }}>
-                  {formatCurrency(ord.total)}
-                </div>
-                {ord.tracking_code && (
-                  <span className="badge" style={{ backgroundColor: "var(--accent-mint-light)", color: "var(--accent-mint)" }}>
-                    追蹤碼: {ord.tracking_code}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Travel Notes if present */}
-            {ord.travel_notes && (
-              <div style={{ backgroundColor: "#FFF8E1", padding: "8px 12px", borderRadius: "var(--radius-sm)", fontSize: "0.82rem", marginBottom: "14px", color: "#8D6E63" }}>
-                ✈️ <strong>買家出國請假：</strong> {ord.travel_notes}
-              </div>
-            )}
-
-            {/* Items Table with custom open-text dates & tags */}
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem", textAlign: "left" }}>
-                <thead>
-                  <tr style={{ backgroundColor: "var(--bg-subtle)", borderBottom: "1px solid var(--border-light)" }}>
-                    <th style={{ padding: "8px 12px" }}>商品 / 規格 SKU</th>
-                    <th style={{ padding: "8px 12px" }}>數量</th>
-                    <th style={{ padding: "8px 12px" }}>預購狀態</th>
-                    <th style={{ padding: "8px 12px" }}>英國下單日 (例: 2026/06/07(1))</th>
-                    <th style={{ padding: "8px 12px" }}>英國到貨日</th>
-                    <th style={{ padding: "8px 12px" }}>箱號顏色標籤</th>
-                    <th style={{ padding: "8px 12px" }}>雙軌備註 (買家 / 內部)</th>
-                    <th style={{ padding: "8px 12px", textAlign: "right" }}>操作</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ord.items?.map((item) => (
-                    <tr key={item.id} style={{ borderBottom: "1px solid var(--border-light)" }}>
-                      <td style={{ padding: "10px 12px", display: "flex", alignItems: "center", gap: "8px" }}>
-                        <img
-                          src={item.variant?.product?.images?.[0]?.image_url || "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=80"}
-                          alt="item"
-                          style={{ width: "40px", height: "40px", objectFit: "cover", borderRadius: "var(--radius-sm)" }}
-                        />
-                        <div>
-                          <div style={{ fontWeight: "700" }}>{item.variant?.product?.name_zh}</div>
-                          <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                            {item.variant?.size_label} ｜ {item.variant?.sku}
-                          </div>
-                        </div>
-                      </td>
-                      <td style={{ padding: "10px 12px", fontWeight: "700" }}>{item.quantity} 件</td>
-                      <td style={{ padding: "10px 12px" }}>
-                        <span className={`badge ${item.preorder_status === "OUT_OF_STOCK" ? "badge-out-of-stock" : "badge-in-progress"}`}>
-                          {item.preorder_status}
-                        </span>
-                      </td>
-                      <td style={{ padding: "10px 12px" }}>
-                        {item.ordered_date_text || <span style={{ color: "var(--text-light)" }}>-</span>}
-                      </td>
-                      <td style={{ padding: "10px 12px" }}>
-                        {item.arrival_date_text || <span style={{ color: "var(--text-light)" }}>-</span>}
-                      </td>
-                      <td style={{ padding: "10px 12px" }}>
-                        {item.box_color_tag ? (
-                          <span className="badge" style={{ backgroundColor: "#E3F2FD", color: "#1565C0" }}>
-                            {item.box_color_tag}
-                          </span>
-                        ) : <span style={{ color: "var(--text-light)" }}>-</span>}
-                      </td>
-                      <td style={{ padding: "10px 12px" }}>
-                        <div style={{ fontSize: "0.78rem" }}>
-                          {item.customer_remarks && <div style={{ color: "var(--primary-heart)" }}>買家看得到：{item.customer_remarks}</div>}
-                          {item.admin_remarks && <div style={{ color: "var(--text-muted)" }}>內部專用：{item.admin_remarks}</div>}
-                          {!item.customer_remarks && !item.admin_remarks && <span style={{ color: "var(--text-light)" }}>-</span>}
-                        </div>
-                      </td>
-                      <td style={{ padding: "10px 12px", textAlign: "right" }}>
-                        <button
-                          onClick={() => handleOpenEdit(item, ord)}
-                          className="btn btn-secondary btn-sm"
-                          title="編輯物流節點與備註"
-                        >
-                          <Edit size={14} /> 編輯節點
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+        {filteredOrders.length === 0 ? (
+          <div className="card" style={{ padding: "48px 20px", textAlign: "center", color: "var(--text-muted)" }}>
+            <Boxes size={48} style={{ margin: "0 auto 12px", opacity: 0.35, color: "var(--primary-heart)" }} />
+            <h3 style={{ fontSize: "1.1rem", fontWeight: "700", marginBottom: "6px" }}>此分頁目前無待處理項目</h3>
+            <p style={{ fontSize: "0.85rem" }}>所有符合條件的商品已推進至其他物流節點，或尚未產生此狀態的商品。</p>
           </div>
-        ))}
+        ) : (
+          filteredOrders.map((ord) => (
+            <div key={ord.id} className="card" style={{ padding: "20px" }}>
+              {/* Order Meta Header */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--border-light)", paddingBottom: "14px", marginBottom: "16px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                  <span style={{ fontSize: "1.1rem", fontWeight: "800", color: "var(--text-main)" }}>
+                    訂單：{ord.order_number}
+                  </span>
+                  <span className="badge" style={{ backgroundColor: "var(--bg-subtle)", color: "var(--text-main)" }}>
+                    買家：{ord.member?.full_name} ({ord.member?.member_id || "新買家"})
+                  </span>
+                  <span className="badge" style={{ backgroundColor: ord.status === "PAID" ? "var(--accent-mint-light)" : "var(--accent-gold-light)", color: ord.status === "PAID" ? "var(--accent-mint)" : "var(--accent-gold)" }}>
+                    狀態：{ord.status}
+                  </span>
+                  {ord.shipping_type === "POST_OFFICE" && (
+                    <span className="badge" style={{ backgroundColor: "#E8F0FE", color: "#1967D2" }}>
+                      中華郵政宅配
+                    </span>
+                  )}
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                  <div style={{ fontWeight: "800", color: "var(--primary-heart)", fontSize: "1.15rem" }}>
+                    {formatCurrency(ord.total)}
+                  </div>
+                  {ord.tracking_code && (
+                    <span className="badge" style={{ backgroundColor: "var(--accent-mint-light)", color: "var(--accent-mint)" }}>
+                      追蹤碼: {ord.tracking_code}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Travel Notes if present */}
+              {ord.travel_notes && (
+                <div style={{ backgroundColor: "#FFF8E1", padding: "8px 12px", borderRadius: "var(--radius-sm)", fontSize: "0.82rem", marginBottom: "14px", color: "#8D6E63" }}>
+                  ✈️ <strong>買家出國請假：</strong> {ord.travel_notes}
+                </div>
+              )}
+
+              {/* Items Table with custom open-text dates & tags */}
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem", textAlign: "left" }}>
+                  <thead>
+                    <tr style={{ backgroundColor: "var(--bg-subtle)", borderBottom: "1px solid var(--border-light)" }}>
+                      <th style={{ padding: "8px 12px" }}>商品 / 規格 SKU</th>
+                      <th style={{ padding: "8px 12px" }}>數量</th>
+                      <th style={{ padding: "8px 12px" }}>預購狀態</th>
+                      <th style={{ padding: "8px 12px" }}>英國下單日 (例: 2026/06/07(1))</th>
+                      <th style={{ padding: "8px 12px" }}>英國到貨日</th>
+                      <th style={{ padding: "8px 12px" }}>箱號顏色標籤</th>
+                      <th style={{ padding: "8px 12px" }}>雙軌備註 (買家 / 內部)</th>
+                      <th style={{ padding: "8px 12px", textAlign: "right" }}>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ord.filteredItems?.map((item) => (
+                      <tr key={item.id} style={{ borderBottom: "1px solid var(--border-light)" }}>
+                        <td style={{ padding: "10px 12px", display: "flex", alignItems: "center", gap: "8px" }}>
+                          <img
+                            src={item.variant?.product?.images?.[0]?.image_url || "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=80"}
+                            alt="item"
+                            style={{ width: "40px", height: "40px", objectFit: "cover", borderRadius: "var(--radius-sm)" }}
+                          />
+                          <div>
+                            <div style={{ fontWeight: "700" }}>{item.variant?.product?.name_zh}</div>
+                            <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                              {item.variant?.size_label} ｜ {item.variant?.sku}
+                            </div>
+                          </div>
+                        </td>
+                        <td style={{ padding: "10px 12px", fontWeight: "700" }}>{item.quantity} 件</td>
+                        <td style={{ padding: "10px 12px" }}>
+                          <span className={`badge ${item.preorder_status === "OUT_OF_STOCK" ? "badge-out-of-stock" : "badge-in-progress"}`}>
+                            {item.preorder_status}
+                          </span>
+                        </td>
+                        <td style={{ padding: "10px 12px" }}>
+                          {item.ordered_date_text || <span style={{ color: "var(--text-light)" }}>-</span>}
+                        </td>
+                        <td style={{ padding: "10px 12px" }}>
+                          {item.arrival_date_text || <span style={{ color: "var(--text-light)" }}>-</span>}
+                        </td>
+                        <td style={{ padding: "10px 12px" }}>
+                          {item.box_color_tag ? (
+                            <span className="badge" style={{ backgroundColor: "#E3F2FD", color: "#1565C0" }}>
+                              {item.box_color_tag}
+                            </span>
+                          ) : <span style={{ color: "var(--text-light)" }}>-</span>}
+                        </td>
+                        <td style={{ padding: "10px 12px" }}>
+                          <div style={{ fontSize: "0.78rem" }}>
+                            {item.customer_remarks && <div style={{ color: "var(--primary-heart)" }}>買家看得到：{item.customer_remarks}</div>}
+                            {item.admin_remarks && <div style={{ color: "var(--text-muted)" }}>內部專用：{item.admin_remarks}</div>}
+                            {!item.customer_remarks && !item.admin_remarks && <span style={{ color: "var(--text-light)" }}>-</span>}
+                          </div>
+                        </td>
+                        <td style={{ padding: "10px 12px", textAlign: "right" }}>
+                          <button
+                            onClick={() => handleOpenEdit(item, ord)}
+                            className="btn btn-secondary btn-sm"
+                            title="編輯物流節點與備註"
+                          >
+                            <Edit size={14} /> 編輯節點
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {/* Edit Milestone Modal */}

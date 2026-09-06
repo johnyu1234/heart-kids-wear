@@ -41,6 +41,36 @@ def admin_list_orders(
     if status:
         query = query.filter(Order.status == status)
 
+    if box_color_tag:
+        query = query.join(Order.items).filter(OrderItem.box_color_tag == box_color_tag)
+
+    tab_filters = {
+        "UNORDERED": lambda: [
+            (OrderItem.ordered_date_text == None) | (OrderItem.ordered_date_text == ""),
+            OrderItem.preorder_status.notin_(["OUT_OF_STOCK", "DEFECTIVE", "SHIPPED"]),
+            Order.status.notin_(["SHIPPED_TO_CUSTOMER", "DELIVERED"])
+        ],
+        "UNDELIVERED": lambda: [
+            OrderItem.ordered_date_text != None,
+            OrderItem.ordered_date_text != "",
+            (OrderItem.arrival_date_text == None) | (OrderItem.arrival_date_text == ""),
+            OrderItem.preorder_status.notin_(["OUT_OF_STOCK", "DEFECTIVE", "SHIPPED"]),
+            Order.status.notin_(["SHIPPED_TO_CUSTOMER", "DELIVERED"])
+        ],
+        "UNSHIPPED": lambda: [
+            OrderItem.arrival_date_text != None,
+            OrderItem.arrival_date_text != "",
+            OrderItem.preorder_status.notin_(["OUT_OF_STOCK", "DEFECTIVE", "SHIPPED"]),
+            Order.status.notin_(["SHIPPED_TO_CUSTOMER", "DELIVERED"])
+        ],
+        "IN_PROGRESS": lambda: [
+            (OrderItem.preorder_status.in_(["OUT_OF_STOCK", "DEFECTIVE"])) | (OrderItem.defect_description != None)
+        ]
+    }
+
+    if tab in tab_filters:
+        query = query.join(Order.items).filter(*tab_filters[tab]())
+
     if search:
         query = query.join(Order.member).filter(
             (Order.order_number.ilike(f"%{search}%")) |
@@ -50,7 +80,7 @@ def admin_list_orders(
             (Order.tracking_code.ilike(f"%{search}%"))
         )
 
-    return query.order_by(Order.created_at.desc()).all()
+    return query.distinct().order_by(Order.created_at.desc()).all()
 
 @router.get("/allocation/{product_id}", response_model=AllocationProductOut)
 def get_product_allocation(
