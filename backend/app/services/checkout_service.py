@@ -41,9 +41,10 @@ def calculate_checkout(
     bulk_threshold = Decimal(get_system_config(db, "BULK_DISCOUNT_THRESHOLD", "4000.00"))
     bulk_discount_val = Decimal(get_system_config(db, "BULK_DISCOUNT_AMOUNT", "60.00"))
 
-    # Shipping Lock Logic
+    # Shipping Lock Logic (Over 15 items locks to Post Office)
     is_shipping_locked_post = total_items > max_711_items
-    effective_shipping_type = "POST_OFFICE" if is_shipping_locked_post else requested_shipping_type
+    norm_req_type = "POST_OFFICE" if requested_shipping_type == "POST_OFFICE" else "SEVEN_ELEVEN"
+    effective_shipping_type = "POST_OFFICE" if is_shipping_locked_post else norm_req_type
     shipping_fee = fee_post if effective_shipping_type == "POST_OFFICE" else fee_711
 
     # Bulk Discount Logic (NT$4,000 threshold on subtotal excluding shipping)
@@ -86,10 +87,14 @@ def calculate_checkout(
         "shipping_type": effective_shipping_type,
         "shipping_fee": shipping_fee,
         "is_shipping_locked_post": is_shipping_locked_post,
+        "is_locked_to_post": is_shipping_locked_post,
         "bulk_discount_applied": bulk_discount_applied,
+        "bulk_discount": bulk_discount_applied,
         "available_store_credits": available_credits,
         "credits_to_deduct": credits_to_deduct,
+        "store_credits_deducted": credits_to_deduct,
         "available_points": available_points,
         "points_to_deduct": points_to_deduct,
-        "final_payable_amount": final_payable_amount
+        "final_payable_amount": final_payable_amount,
+        "payable_amount": final_payable_amount
     }

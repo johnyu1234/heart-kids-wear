@@ -375,9 +375,9 @@ export function OrderHistoryPage() {
                         <MapPin size={15} style={{ color: "var(--primary-heart)" }} />
                         <span>{t("member.shipping_destination")}：</span>
                         <span style={{ fontWeight: "600", color: "var(--text-main)" }}>
-                          {order.shipping_method === "711"
-                            ? `7-11 ${order.store_name_711 || ""} (店號: ${order.store_number_711 || ""})`
-                            : `中華郵政宅配 (${order.postal_address || ""})`}
+                          {order.shipping_type === "SEVEN_ELEVEN" || order.shipping_type === "711" || order.shipping_method === "711"
+                            ? `7-11 ${order.shipping_address?.store_name || order.store_name_711 || "店到店"} (店號: ${order.shipping_address?.store_number || order.store_number_711 || "未填"})`
+                            : `中華郵政宅配 (${order.shipping_address?.full_address || order.postal_address || "常用地址"})`}
                         </span>
                       </div>
 

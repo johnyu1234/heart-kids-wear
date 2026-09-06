@@ -45,12 +45,16 @@ class CheckoutCalculateResponse(BaseModel):
     shipping_type: str
     shipping_fee: Decimal
     is_shipping_locked_post: bool  # If items > 15
+    is_locked_to_post: Optional[bool] = None
     bulk_discount_applied: Decimal # NT$60 if subtotal >= 4000
+    bulk_discount: Optional[Decimal] = None
     available_store_credits: Decimal
     credits_to_deduct: Decimal
+    store_credits_deducted: Optional[Decimal] = None
     available_points: Decimal
     points_to_deduct: Decimal
     final_payable_amount: Decimal
+    payable_amount: Optional[Decimal] = None
 
 class CheckoutSubmitRequest(BaseModel):
     shipping_type: str = "SEVEN_ELEVEN"

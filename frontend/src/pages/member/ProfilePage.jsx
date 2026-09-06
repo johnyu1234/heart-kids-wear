@@ -11,6 +11,8 @@ export function ProfilePage() {
   const [formData, setFormData] = useState({
     phone: "",
     contact_address: "",
+    store_name: "",
+    store_number: "",
     fb_handle: "",
     ig_handle: "",
     line_handle: "",
@@ -21,9 +23,12 @@ export function ProfilePage() {
 
   useEffect(() => {
     if (user) {
+      const addr711 = user.shipping_addresses?.find((a) => a.address_type === "SEVEN_ELEVEN" || a.store_name);
       setFormData({
         phone: user.phone || "",
         contact_address: user.contact_address || "",
+        store_name: addr711?.store_name || "",
+        store_number: addr711?.store_number || "",
         fb_handle: user.fb_handle || "",
         ig_handle: user.ig_handle || "",
         line_handle: user.line_handle || "",
@@ -47,16 +52,38 @@ export function ProfilePage() {
     setSaving(true);
     setSuccessMsg("");
     try {
+      const shippingAddrs = [];
+      if (formData.store_name || formData.store_number) {
+        shippingAddrs.push({
+          address_type: "SEVEN_ELEVEN",
+          store_name: formData.store_name,
+          store_number: formData.store_number,
+          recipient_name: user?.full_name,
+          recipient_phone: formData.phone || user?.phone,
+          is_primary: true
+        });
+      }
+      if (formData.contact_address) {
+        shippingAddrs.push({
+          address_type: "POST_OFFICE",
+          full_address: formData.contact_address,
+          recipient_name: user?.full_name,
+          recipient_phone: formData.phone || user?.phone,
+          is_primary: false
+        });
+      }
+
       await api.post("/members/profile/update", {
         phone: formData.phone,
         contact_address: formData.contact_address,
         fb_handle: formData.fb_handle,
         ig_handle: formData.ig_handle,
         line_handle: formData.line_handle,
-        new_password: formData.new_password || undefined
+        new_password: formData.new_password || undefined,
+        shipping_addresses: shippingAddrs.length > 0 ? shippingAddrs : undefined
       });
       await refreshProfile();
-      setSuccessMsg("個人資料已成功更新！");
+      setSuccessMsg("個人資料與收件門市已成功更新！");
     } catch (err) {
       alert(err.response?.data?.detail || "更新失敗");
     } finally {
@@ -185,10 +212,36 @@ export function ProfilePage() {
                 </div>
               </div>
 
+              <div className="grid-2">
+                <div className="form-group">
+                  <label className="form-label">常用 7-11 門市名稱 (例: 鑫樂門市)</label>
+                  <input
+                    type="text"
+                    placeholder="請輸入門市名稱"
+                    value={formData.store_name}
+                    onChange={(e) => setFormData({ ...formData, store_name: e.target.value })}
+                    className="form-control"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">常用 7-11 門市店號 6 碼 (例: 123456)</label>
+                  <input
+                    type="text"
+                    placeholder="6 位數字店號"
+                    maxLength={6}
+                    value={formData.store_number}
+                    onChange={(e) => setFormData({ ...formData, store_number: e.target.value })}
+                    className="form-control"
+                  />
+                </div>
+              </div>
+
               <div className="form-group">
-                <label className="form-label">通訊地址</label>
+                <label className="form-label">中華郵政宅配通訊地址 (例: 台北市大安區信義路...)</label>
                 <input
                   type="text"
+                  placeholder="請輸入完整收件地址"
                   value={formData.contact_address}
                   onChange={(e) => setFormData({ ...formData, contact_address: e.target.value })}
                   className="form-control"
