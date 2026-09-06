@@ -77,6 +77,12 @@ export function CheckoutPage() {
   const addr711 = user?.shipping_addresses?.find((a) => a.address_type === "SEVEN_ELEVEN" || a.store_name) || user?.shipping_addresses?.[0];
   const addrPost = user?.shipping_addresses?.find((a) => a.address_type === "POST_OFFICE" || a.full_address) || user?.contact_address;
 
+  const resolvedPostAddress = addrPost?.full_address || (typeof addrPost === "string" ? addrPost : null) || user?.contact_address;
+  const resolved711Name = addr711?.store_name;
+  const resolved711Number = addr711?.store_number;
+
+  const hasValidAddress = is711 ? (resolved711Name && resolved711Number) : resolvedPostAddress;
+
   const handleSubmitOrder = async (e) => {
     e.preventDefault();
     if (!agreeTerms) {
@@ -89,15 +95,25 @@ export function CheckoutPage() {
       return;
     }
 
+    if (!hasValidAddress) {
+      setModalConfig({
+        isOpen: true,
+        title: "收件資訊不完整",
+        message: "尚未設定您選擇的物流收件地址/門市，請先至「帳號與收件門市」設定後再結帳。",
+        type: "warning",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const effectiveType = isLockedToPost ? "POST_OFFICE" : shippingType;
       const res = await api.post("/checkout/submit", {
         shipping_type: effectiveType,
         shipping_address_id: effectiveType === "SEVEN_ELEVEN" ? addr711?.id : addrPost?.id,
-        store_name: addr711?.store_name || "7-11 預設門市",
-        store_number: addr711?.store_number || "123456",
-        full_address: addrPost?.full_address || (typeof addrPost === "string" ? addrPost : null) || user?.contact_address || "台北市大安區信義路二段1號",
+        store_name: resolved711Name || null,
+        store_number: resolved711Number || null,
+        full_address: resolvedPostAddress || null,
         recipient_name: user?.full_name,
         recipient_phone: user?.phone,
         use_store_credits: useCredits,
@@ -236,9 +252,19 @@ export function CheckoutPage() {
               <div><strong>{t("checkout.recipient")}：</strong>{user?.full_name} ({user?.phone})</div>
               <div style={{ marginTop: "4px" }}>
                 <strong>{t("checkout.select_address")}：</strong>
-                {is711
-                  ? (addr711?.store_name ? `${addr711.store_name} (店號: ${addr711.store_number || "未填"})` : "7-11 預設門市 (店號: 123456)")
-                  : (addrPost?.full_address || (typeof addrPost === "string" ? addrPost : null) || user?.contact_address || "台北市大安區信義路二段1號")}
+                {is711 ? (
+                  hasValidAddress ? (
+                    `${resolved711Name} (店號: ${resolved711Number || "未填"})`
+                  ) : (
+                    <span style={{ color: "var(--accent-gold)" }}>尚未設定常用門市，請至 <Link to="/member/profile" style={{ textDecoration: "underline" }}>個人資料</Link> 設定</span>
+                  )
+                ) : (
+                  hasValidAddress ? (
+                    resolvedPostAddress
+                  ) : (
+                    <span style={{ color: "var(--accent-gold)" }}>尚未設定收件地址，請至 <Link to="/member/profile" style={{ textDecoration: "underline" }}>個人資料</Link> 設定</span>
+                  )
+                )}
               </div>
             </div>
           </div>
