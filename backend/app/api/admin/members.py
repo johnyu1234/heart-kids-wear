@@ -35,7 +35,10 @@ def admin_list_members(
     admin = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
-    query = db.query(Member).options(joinedload(Member.shipping_addresses))
+    query = db.query(Member).options(
+        joinedload(Member.shipping_addresses),
+        joinedload(Member.points_cards)
+    )
     
     if search:
         query = query.filter(

@@ -65,6 +65,7 @@ class MemberProfileOut(BaseModel):
     line_handle: Optional[str] = None
     marketing_source: Optional[str] = None
     store_credits: Decimal
+    active_points: Decimal = Field(default=0)
     total_purchases: int
     overdue_count: int
     admin_remarks: Optional[str] = None

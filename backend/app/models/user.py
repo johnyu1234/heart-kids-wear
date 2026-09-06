@@ -39,6 +39,16 @@ class Member(Base):
     wishlist_items = relationship("Wishlist", back_populates="member", cascade="all, delete-orphan")
     points_cards = relationship("PointsCard", back_populates="member", cascade="all, delete-orphan")
 
+    @property
+    def active_points(self):
+        from decimal import Decimal
+        if not self.points_cards:
+            return Decimal("0.0")
+        return sum(
+            [pc.remaining for pc in self.points_cards if not pc.is_used and (pc.expiry_date is None or pc.expiry_date > datetime.utcnow())],
+            Decimal("0.0")
+        )
+
 
 class ShippingAddress(Base):
     __tablename__ = "shipping_addresses"

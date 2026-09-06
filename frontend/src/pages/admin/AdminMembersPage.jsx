@@ -118,7 +118,7 @@ export function AdminMembersPage() {
               <th style={{ padding: "14px 18px" }}>會員姓名 / 代號</th>
               <th style={{ padding: "14px 18px" }}>聯絡電話 / 信箱</th>
               <th style={{ padding: "14px 18px" }}>常用 7-11 門市</th>
-              <th style={{ padding: "14px 18px" }}>購物金餘額</th>
+              <th style={{ padding: "14px 18px" }}>購物金餘額 / 點數金</th>
               <th style={{ padding: "14px 18px" }}>逾期/棄單次數</th>
               <th style={{ padding: "14px 18px" }}>管理員行為標籤 (Remarks)</th>
               <th style={{ padding: "14px 18px", textAlign: "right" }}>操作</th>
@@ -144,8 +144,15 @@ export function AdminMembersPage() {
                     <div>7-11 {m.shipping_addresses[0].store_name} ({m.shipping_addresses[0].store_number})</div>
                   ) : <span style={{ color: "var(--text-light)" }}>-</span>}
                 </td>
-                <td style={{ padding: "14px 18px", fontWeight: "800", color: "var(--primary-heart)" }}>
-                  {formatCurrency(m.store_credits)}
+                <td style={{ padding: "14px 18px" }}>
+                  <div style={{ fontWeight: "800", color: "var(--primary-heart)" }}>
+                    {formatCurrency(m.store_credits)}
+                  </div>
+                  {m.active_points > 0 && (
+                    <div style={{ fontSize: "0.8rem", color: "var(--accent-mint)", fontWeight: "700", marginTop: "4px" }}>
+                      點數: {m.active_points} 點
+                    </div>
+                  )}
                 </td>
                 <td style={{ padding: "14px 18px" }}>
                   {m.overdue_count > 0 ? (
