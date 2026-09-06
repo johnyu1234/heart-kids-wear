@@ -14,7 +14,7 @@ export function CheckoutPage() {
   const { lang, t } = useTranslation();
   const navigate = useNavigate();
 
-  const [shippingMethod, setShippingMethod] = useState("711");
+  const [shippingType, setShippingType] = useState("SEVEN_ELEVEN");
   const [useCredits, setUseCredits] = useState(false);
   const [selectedPointsCard, setSelectedPointsCard] = useState("");
   const [travelNotes, setTravelNotes] = useState("");
@@ -54,13 +54,13 @@ export function CheckoutPage() {
     async function calculate() {
       try {
         const res = await api.post("/checkout/calculate", {
-          shipping_type: shippingMethod === "POST_OFFICE" ? "POST_OFFICE" : "SEVEN_ELEVEN",
+          shipping_type: shippingType,
           use_store_credits: useCredits,
           points_card_id: selectedPointsCard ? parseInt(selectedPointsCard) : null,
         });
         setCalculation(res.data);
-        if (res.data.is_shipping_locked_post || res.data.is_locked_to_post) {
-          setShippingMethod("POST_OFFICE");
+        if (res.data.is_shipping_locked_post) {
+          setShippingType("POST_OFFICE");
         }
       } catch (err) {
         console.error(err);
@@ -69,10 +69,10 @@ export function CheckoutPage() {
     if (cart.items.length > 0) {
       calculate();
     }
-  }, [cart, shippingMethod, useCredits, selectedPointsCard]);
+  }, [cart, shippingType, useCredits, selectedPointsCard]);
 
-  const isLockedToPost = calculation?.is_shipping_locked_post || calculation?.is_locked_to_post || false;
-  const is711Selected = !isLockedToPost && (shippingMethod === "711" || shippingMethod === "SEVEN_ELEVEN");
+  const isLockedToPost = calculation?.is_shipping_locked_post || false;
+  const is711 = !isLockedToPost && shippingType === "SEVEN_ELEVEN";
 
   const addr711 = user?.shipping_addresses?.find((a) => a.address_type === "SEVEN_ELEVEN" || a.store_name) || user?.shipping_addresses?.[0];
   const addrPost = user?.shipping_addresses?.find((a) => a.address_type === "POST_OFFICE" || a.full_address) || user?.contact_address;
@@ -91,7 +91,7 @@ export function CheckoutPage() {
 
     setLoading(true);
     try {
-      const effectiveType = isLockedToPost ? "POST_OFFICE" : (shippingMethod === "POST_OFFICE" ? "POST_OFFICE" : "SEVEN_ELEVEN");
+      const effectiveType = isLockedToPost ? "POST_OFFICE" : shippingType;
       const res = await api.post("/checkout/submit", {
         shipping_type: effectiveType,
         shipping_address_id: effectiveType === "SEVEN_ELEVEN" ? addr711?.id : addrPost?.id,
@@ -191,7 +191,7 @@ export function CheckoutPage() {
                 alignItems: "center",
                 gap: "12px",
                 padding: "12px 16px",
-                border: is711Selected ? "2px solid var(--primary-heart)" : "1px solid var(--border-light)",
+                border: is711 ? "2px solid var(--primary-heart)" : "1px solid var(--border-light)",
                 borderRadius: "var(--radius-md)",
                 cursor: isLockedToPost ? "not-allowed" : "pointer",
                 opacity: isLockedToPost ? 0.5 : 1
@@ -199,10 +199,10 @@ export function CheckoutPage() {
                 <input
                   type="radio"
                   name="shipping"
-                  value="711"
+                  value="SEVEN_ELEVEN"
                   disabled={isLockedToPost}
-                  checked={is711Selected}
-                  onChange={() => setShippingMethod("711")}
+                  checked={is711}
+                  onChange={() => setShippingType("SEVEN_ELEVEN")}
                 />
                 <div>
                   <div style={{ fontWeight: "700", fontSize: "0.95rem" }}>{t("checkout.shipping_711")}</div>
@@ -214,7 +214,7 @@ export function CheckoutPage() {
                 alignItems: "center",
                 gap: "12px",
                 padding: "12px 16px",
-                border: (!is711Selected || isLockedToPost) ? "2px solid var(--primary-heart)" : "1px solid var(--border-light)",
+                border: (!is711 || isLockedToPost) ? "2px solid var(--primary-heart)" : "1px solid var(--border-light)",
                 borderRadius: "var(--radius-md)",
                 cursor: "pointer"
               }}>
@@ -222,8 +222,8 @@ export function CheckoutPage() {
                   type="radio"
                   name="shipping"
                   value="POST_OFFICE"
-                  checked={!is711Selected || isLockedToPost}
-                  onChange={() => setShippingMethod("POST_OFFICE")}
+                  checked={!is711 || isLockedToPost}
+                  onChange={() => setShippingType("POST_OFFICE")}
                 />
                 <div>
                   <div style={{ fontWeight: "700", fontSize: "0.95rem" }}>{t("checkout.shipping_post")}</div>
@@ -236,7 +236,7 @@ export function CheckoutPage() {
               <div><strong>{t("checkout.recipient")}：</strong>{user?.full_name} ({user?.phone})</div>
               <div style={{ marginTop: "4px" }}>
                 <strong>{t("checkout.select_address")}：</strong>
-                {is711Selected
+                {is711
                   ? (addr711?.store_name ? `${addr711.store_name} (店號: ${addr711.store_number || "未填"})` : "7-11 預設門市 (店號: 123456)")
                   : (addrPost?.full_address || (typeof addrPost === "string" ? addrPost : null) || user?.contact_address || "台北市大安區信義路二段1號")}
               </div>
@@ -318,25 +318,25 @@ export function CheckoutPage() {
                 <span>{formatCurrency(calculation?.subtotal || cart.subtotal)}</span>
               </div>
 
-              {(calculation?.bulk_discount_applied > 0 || calculation?.bulk_discount > 0) && (
+              {calculation?.bulk_discount_applied > 0 && (
                 <div style={{ display: "flex", justifyContent: "space-between", color: "var(--accent-mint)", fontWeight: "600" }}>
                   <span>{t("cart.bulk_discount")}</span>
-                  <span>-{formatCurrency(calculation.bulk_discount_applied || calculation.bulk_discount)}</span>
+                  <span>-{formatCurrency(calculation.bulk_discount_applied)}</span>
                 </div>
               )}
 
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span style={{ color: "var(--text-muted)" }}>{t("cart.estimated_shipping")}</span>
-                <span>{formatCurrency(calculation?.shipping_fee ?? (is711Selected ? 60 : 80))}</span>
+                <span>{formatCurrency(calculation?.shipping_fee ?? (is711 ? 60 : 80))}</span>
               </div>
 
-              {(calculation?.credits_to_deduct > 0 || calculation?.store_credits_deducted > 0) && (
+              {calculation?.credits_to_deduct > 0 && (
                 <div style={{ display: "flex", justifyContent: "space-between", color: "var(--primary-heart)", fontWeight: "600" }}>
-                  <span>{t("checkout.credits_deducted", { amount: formatCurrency(calculation.credits_to_deduct || calculation.store_credits_deducted) })}</span>
+                  <span>{t("checkout.credits_deducted", { amount: formatCurrency(calculation.credits_to_deduct) })}</span>
                 </div>
               )}
 
-              {(calculation?.points_to_deduct > 0) && (
+              {calculation?.points_to_deduct > 0 && (
                 <div style={{ display: "flex", justifyContent: "space-between", color: "var(--accent-mint)", fontWeight: "600" }}>
                   <span>{t("member.points_deduction")}</span>
                   <span>-{formatCurrency(calculation.points_to_deduct)}</span>
@@ -345,7 +345,7 @@ export function CheckoutPage() {
 
               <div style={{ borderTop: "1px solid var(--border-light)", paddingTop: "12px", display: "flex", justifyContent: "space-between", fontSize: "1.25rem", fontWeight: "800", color: "var(--primary-heart)" }}>
                 <span>{t("checkout.final_payable")}</span>
-                <span>{formatCurrency(calculation?.final_payable_amount || calculation?.payable_amount || cart.estimated_total)}</span>
+                <span>{formatCurrency(calculation?.final_payable_amount || cart.estimated_total)}</span>
               </div>
             </div>
 

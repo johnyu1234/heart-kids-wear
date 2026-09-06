@@ -81,7 +81,7 @@ async function runCartRulesTests() {
     await page.waitForSelector("h1", { timeout: 10000 });
 
     // Verify 7-11 radio button is ENABLED and selectable
-    const radio711 = page.locator('input[name="shipping"][value="711"]');
+    const radio711 = page.locator('input[name="shipping"][value="SEVEN_ELEVEN"], input[name="shipping"][value="711"]').first();
     const is711Disabled = await radio711.isDisabled();
     if (!is711Disabled) {
       console.log("✅ PASSED: 7-11 Store Pickup (NT$60) is available and enabled when cart < 15 items");
@@ -135,7 +135,7 @@ async function runCartRulesTests() {
     }
 
     // Verify 7-11 is now DISABLED
-    const radio711Locked = page.locator('input[name="shipping"][value="711"]');
+    const radio711Locked = page.locator('input[name="shipping"][value="SEVEN_ELEVEN"], input[name="shipping"][value="711"]').first();
     const is711NowDisabled = await radio711Locked.isDisabled();
     if (is711NowDisabled) {
       console.log("✅ PASSED: 7-11 Pickup is automatically LOCKED / DISABLED when items > 15");
